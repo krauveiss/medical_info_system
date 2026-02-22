@@ -1,10 +1,22 @@
-import React from 'react'
 import MainLayout from '../../components/MainLayout/MainLayout'
 import { Card, Container, Row, Col, Form, Button } from 'react-bootstrap'
 import type z from 'zod'
 import { registerSchema } from './register.schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
+import { useMutation, useQuery } from '@tanstack/react-query'
+
+type Speciality = {
+    id: string,
+    name: string,
+    createTime: string
+}
+
+type SpecialityResponse = {
+    specialties: Speciality[]
+}
+
 
 
 const Register = () => {
@@ -18,9 +30,33 @@ const Register = () => {
         resolver: zodResolver(registerSchema)
     });
 
+    async function registerDoctor(data: RegisterFormData) {
+        return axios.post('https://mis-api.kreosoft.space/api/doctor/register', data)
+    }
+
+    async function getSpecialties(): Promise<SpecialityResponse> {
+        const { data } = await axios.get('https://mis-api.kreosoft.space/api/dictionary/speciality');
+        return data;
+    }
+    const { data, isLoading } = useQuery({
+        queryKey: ['specialties'],
+        queryFn: getSpecialties
+    })
+
+    const mutation = useMutation({
+        mutationFn: registerDoctor,
+        onSuccess: (response) => { console.log("OK", response.data) },
+        onError: (response) => { console.log("ERROR", response) },
+
+    })
+
+
     function onSubmit(data: RegisterFormData) {
         console.log(data);
+        mutation.mutate(data);
     }
+
+
 
     return (
         <MainLayout>
@@ -74,8 +110,8 @@ const Register = () => {
                                     <Row>
                                         <Form.Group className='mb-3' controlId='phone'>
                                             <Form.Label>Телефон</Form.Label>
-                                            <Form.Control type='phone' required placeholder='+7 777 777 7777' {...register("phone")}
-                                                isInvalid={!!errors.phone}></Form.Control>
+                                            <Form.Control type='tel' required placeholder='+7 777 777 7777' {...register("phone")}
+                                                isInvalid={!!errors.phone} ></Form.Control>
                                             <Form.Control.Feedback type="invalid">
                                                 {errors.phone?.message}
                                             </Form.Control.Feedback>
@@ -86,10 +122,10 @@ const Register = () => {
                                             <Form.Label>Cпециальность</Form.Label>
                                             <Form.Select required {...register("speciality")}
                                                 isInvalid={!!errors.speciality}>
-                                                <option value="">Выберите специалность</option>
-                                                <option value="doc1">Терапевт</option>
-                                                <option value="doc2">Хирург</option>
-                                                <option value="doс3">Ортопед</option>
+                                                <option>{isLoading ? 'Загрузка' : 'Выберите специальность'}</option>
+                                                {data?.specialties.map((spec: Speciality) => (
+                                                    <option value={spec.id}>{spec.name}</option>
+                                                ))}
                                             </Form.Select>
                                             <Form.Control.Feedback type="invalid">
                                                 {errors.speciality?.message}
@@ -116,14 +152,14 @@ const Register = () => {
                                             </Form.Control.Feedback>
                                         </Form.Group>
                                     </Row>
-                                    <Button variant='primary' type='submit' className='mt-3 w-100'>Зарегистрироваться</Button>
+                                    <Button variant='primary' type='submit' className='mt-3 w-100' disabled={mutation.isPending}>{mutation.isPending ? 'Регистрация...' : 'Зарегистрироваться'}</Button>
                                 </Form>
                             </Card.Body>
                         </Card>
                     </Col>
                 </Row>
             </Container>
-        </MainLayout>
+        </MainLayout >
     )
 }
 
