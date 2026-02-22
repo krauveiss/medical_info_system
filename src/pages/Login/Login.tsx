@@ -1,0 +1,83 @@
+import MainLayout from '../../components/MainLayout/MainLayout'
+import { Card, Container, Row, Col, Form, Button } from 'react-bootstrap'
+import type z from 'zod'
+import { loginschema } from './login.schema'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
+import { useMutation } from '@tanstack/react-query'
+
+
+const Login = () => {
+    type LoginFormData = z.infer<typeof loginschema>;
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginschema)
+    });
+
+    async function login(data: LoginFormData) {
+        return axios.post('https://mis-api.kreosoft.space/api/doctor/login', data)
+    }
+
+    const mutation = useMutation({
+        mutationFn: login,
+        onSuccess: () => { alert("Success login"); reset(); },
+        onError: (response) => { console.log("ERROR", response) },
+
+    })
+
+
+    function onSubmit(data: LoginFormData) {
+        console.log(data);
+        mutation.mutate(data);
+    }
+
+
+
+    return (
+        <MainLayout>
+            <Container>
+                <Row className='justify-content-center mt-4' >
+                    <Col md={8} lg={6}>
+                        <Card className='shadow-sm'>
+                            <Card.Body>
+                                <Card.Title className='text-center mb-4 fs-2 '>Вход</Card.Title>
+                                <Form onSubmit={handleSubmit(onSubmit)}>
+                                    <Row>
+                                        <Form.Group className='mb-3' controlId='email' >
+                                            <Form.Label>Email</Form.Label>
+                                            <Form.Control type='email' required placeholder='test@example.com' {...register("email")}
+                                                isInvalid={!!errors.email}></Form.Control>
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.email?.message}
+                                            </Form.Control.Feedback>
+                                        </Form.Group>
+                                    </Row>
+                                    <Row>
+                                        <Form.Group className='mb-3' controlId='password'>
+                                            <Form.Label>Пароль</Form.Label>
+                                            <Form.Control type='password' required placeholder='' {...register("password")}
+                                                isInvalid={!!errors.password}></Form.Control>
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.password?.message}
+                                            </Form.Control.Feedback>
+                                        </Form.Group>
+                                    </Row>
+                                    <Button variant='primary' type='submit' className='mt-3 w-100' disabled={mutation.isPending}>{mutation.isPending ? 'Вход...' : 'Войти'}</Button>
+                                </Form>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        </MainLayout >
+    )
+}
+
+export default Login
+

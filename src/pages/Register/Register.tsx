@@ -25,6 +25,7 @@ const Register = () => {
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors }
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema)
@@ -37,7 +38,7 @@ const Register = () => {
     async function getSpecialties(): Promise<SpecialityResponse> {
         const { data } = await axios.get('https://mis-api.kreosoft.space/api/dictionary/speciality');
         return data;
-    }
+    }   
     const { data, isLoading } = useQuery({
         queryKey: ['specialties'],
         queryFn: getSpecialties
@@ -45,7 +46,7 @@ const Register = () => {
 
     const mutation = useMutation({
         mutationFn: registerDoctor,
-        onSuccess: (response) => { console.log("OK", response.data) },
+        onSuccess: () => { alert("Success register"); reset(); },
         onError: (response) => { console.log("ERROR", response) },
 
     })
