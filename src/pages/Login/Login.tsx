@@ -5,9 +5,11 @@ import { loginschema } from './login.schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import axiosInstance from '../../shared/api/axiosConfig'
+import { useEffect } from 'react'
 
-function setCookie(name, value, days) {
+function setCookie(name: string, value: string, days: number) {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
     document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=strict`;
@@ -29,9 +31,19 @@ const Login = () => {
         return axios.post('https://mis-api.kreosoft.space/api/doctor/login', data)
     }
 
+    async function getDoctorInfo() {
+        const { data } = await axiosInstance.get('/doctor/profile')
+        return data
+    }
+
     const mutation = useMutation({
         mutationFn: login,
-        onSuccess: (response) => { console.log(response.data); reset(); setCookie('token', response.data.token, 7) },
+        onSuccess: (response) => {
+            console.log(response.data);
+            reset();
+            setCookie('token', response.data.token, 7);
+            refetch()
+        },
         onError: (error) => { alert(error.response?.data.message) },
 
     })
@@ -39,6 +51,17 @@ const Login = () => {
     function onSubmit(data: LoginFormData) {
         mutation.mutate(data);
     }
+    const { data, refetch } = useQuery({
+        queryKey: ['doctor-info'],
+        queryFn: getDoctorInfo,
+        enabled: false
+    });
+
+    useEffect(() => {
+        if (data) {
+            alert(`Добро пожаловать, ${data.name}`);
+        }
+    }, [data]);
 
 
 
