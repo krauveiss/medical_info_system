@@ -7,6 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useMutation } from '@tanstack/react-query'
 
+function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=strict`;
+}
 
 const Login = () => {
     type LoginFormData = z.infer<typeof loginschema>;
@@ -26,14 +31,12 @@ const Login = () => {
 
     const mutation = useMutation({
         mutationFn: login,
-        onSuccess: () => { alert("Success login"); reset(); },
-        onError: (response) => { console.log("ERROR", response) },
+        onSuccess: (response) => { console.log(response.data); reset(); setCookie('token', response.data.token, 7) },
+        onError: (error) => { alert(error.response?.data.message) },
 
     })
 
-
     function onSubmit(data: LoginFormData) {
-        console.log(data);
         mutation.mutate(data);
     }
 
