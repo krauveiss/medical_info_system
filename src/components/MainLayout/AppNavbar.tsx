@@ -53,7 +53,7 @@ const AppNavbar = () => {
 
                                     <NavDropdown title={data.name}>
 
-                                        <NavDropdown.Item onClick={()=>navigate('/profile')}>Профиль</NavDropdown.Item>
+                                        <NavDropdown.Item onClick={() => navigate('/profile')}>Профиль</NavDropdown.Item>
                                         <NavDropdown.Item onClick={destroyCookie}>Выход</NavDropdown.Item>
 
                                     </NavDropdown>

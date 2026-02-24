@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import axiosInstance from '../../shared/api/axiosConfig'
+import { useNavigate } from 'react-router-dom'
 
 function setCookie(name: string, value: string, days: number) {
     const expires = new Date();
@@ -15,6 +16,7 @@ function setCookie(name: string, value: string, days: number) {
 }
 
 const Login = () => {
+    const navigate = useNavigate();
     type LoginFormData = z.infer<typeof loginschema>;
 
     const {
@@ -41,7 +43,7 @@ const Login = () => {
             console.log(response.data);
             reset();
             setCookie('token', response.data.token, 7);
-            refetch()
+            navigate('/profile')
         },
         onError: (error) => { alert(error.response?.data.message) },
 
@@ -50,7 +52,7 @@ const Login = () => {
     function onSubmit(data: LoginFormData) {
         mutation.mutate(data);
     }
-    const { refetch } = useQuery({
+    const { data } = useQuery({
         queryKey: ['doctor-info'],
         queryFn: getDoctorInfo,
         enabled: false
@@ -63,8 +65,8 @@ const Login = () => {
                 <Row className='justify-content-center mt-4' >
                     <Col md={8} lg={6}>
                         <Card className='shadow-sm'>
+                            <Card.Header className='text-center mb-4 fs-2 '>Вход</Card.Header>
                             <Card.Body>
-                                <Card.Title className='text-center mb-4 fs-2 '>Вход</Card.Title>
                                 <Form onSubmit={handleSubmit(onSubmit)}>
                                     <Row>
                                         <Form.Group className='mb-3' controlId='email' >

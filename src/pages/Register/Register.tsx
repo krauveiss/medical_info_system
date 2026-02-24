@@ -38,7 +38,7 @@ const Register = () => {
     async function getSpecialties(): Promise<SpecialityResponse> {
         const { data } = await axios.get('https://mis-api.kreosoft.space/api/dictionary/speciality');
         return data;
-    }   
+    }
     const { data, isLoading } = useQuery({
         queryKey: ['specialties'],
         queryFn: getSpecialties
@@ -65,8 +65,8 @@ const Register = () => {
                 <Row className='justify-content-center mt-4' >
                     <Col md={8} lg={6}>
                         <Card className='shadow-sm'>
+                            <Card.Header className='text-center mb-4 fs-2 '>Регистрация</Card.Header>
                             <Card.Body>
-                                <Card.Title className='text-center mb-4 fs-2 '>Регистрация</Card.Title>
                                 <Form onSubmit={handleSubmit(onSubmit)}>
                                     <Row>
                                         <Form.Group className='mb-3' controlId='name'>
