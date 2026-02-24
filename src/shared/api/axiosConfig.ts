@@ -23,7 +23,16 @@ axiosInstance.interceptors.request.use(
         }
         return config
     },
+);
+
+axiosInstance.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            document.cookie = "token=; Max-Age=0; path=/"
+        }
+        return Promise.reject(error)
+    }
 )
 
-
-export default axiosInstance;
+export default axiosInstance; 
