@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import axiosInstance from '../../shared/api/axiosConfig'
-import { useEffect } from 'react'
 
 function setCookie(name: string, value: string, days: number) {
     const expires = new Date();
@@ -51,23 +50,16 @@ const Login = () => {
     function onSubmit(data: LoginFormData) {
         mutation.mutate(data);
     }
-    const { data, refetch } = useQuery({
+    const { refetch } = useQuery({
         queryKey: ['doctor-info'],
         queryFn: getDoctorInfo,
         enabled: false
     });
 
-    useEffect(() => {
-        if (data) {
-            alert(`Добро пожаловать, ${data.name}`);
-        }
-    }, [data]);
-
-
 
     return (
         <MainLayout>
-            <Container>
+            <Container className=''>
                 <Row className='justify-content-center mt-4' >
                     <Col md={8} lg={6}>
                         <Card className='shadow-sm'>
