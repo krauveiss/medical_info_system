@@ -39,7 +39,7 @@ const AppNavbar = () => {
                     <Navbar.Collapse id="basic-navbar-nav">
                         {auth ? (
                             <>
-                                <Nav><Nav.Link style={{ color: 'gray' }} onClick={() => navigate('/test')}>Пациенты</Nav.Link>
+                                <Nav><Nav.Link style={{ color: 'gray' }} onClick={() => navigate('/patients')}>Пациенты</Nav.Link>
                                     <Nav.Link style={{ color: 'gray' }}>Консультации</Nav.Link>
                                     <Nav.Link style={{ color: 'gray' }}>Отчеты и статистика</Nav.Link>
                                 </Nav>

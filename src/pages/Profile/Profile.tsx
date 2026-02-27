@@ -1,4 +1,4 @@
-import { Card, Col, Container, Form, Row, Button } from 'react-bootstrap'
+import { Card, Col, Container, Form, Row, Button, Spinner} from 'react-bootstrap'
 import MainLayout from '../../components/MainLayout/MainLayout'
 import type z from 'zod'
 import { changeprofileSchema } from './changeprofile.schema'
@@ -41,8 +41,8 @@ const Profile = () => {
 
     const mutation = useMutation({
         mutationFn: updateDoctorInfo,
-        onSuccess: (response) => { alert(response) },
-        onError: (error) => { console.log(error) }
+        onSuccess: () => { alert("Профиль успешно обновлен"); },
+        onError: (error) => { alert(error.response?.data.message || 'Ошибка при обновлении профиля'); },
 
     })
 
@@ -145,7 +145,14 @@ const Profile = () => {
                                                 </Form.Control.Feedback>
                                             </Form.Group>
                                         </Row>
-                                        <Button variant='primary' type='submit' className='mt-3 w-100' >Сохранить изменения</Button>
+                                        <Button variant='primary' type='submit' className='mt-3 w-100' disabled={mutation.isPending}>{mutation.isPending ? (<Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                        />) : 'Сохранить изменения'}</Button>
+
                                     </Form>
                                 </Card.Body>
                             </Card>

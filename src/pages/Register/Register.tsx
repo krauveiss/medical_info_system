@@ -1,5 +1,5 @@
 import MainLayout from '../../components/MainLayout/MainLayout'
-import { Card, Container, Row, Col, Form, Button } from 'react-bootstrap'
+import { Card, Container, Row, Col, Form, Button, Spinner} from 'react-bootstrap'
 import type z from 'zod'
 import { registerSchema } from './register.schema'
 import { useForm } from 'react-hook-form'
@@ -153,7 +153,13 @@ const Register = () => {
                                             </Form.Control.Feedback>
                                         </Form.Group>
                                     </Row>
-                                    <Button variant='primary' type='submit' className='mt-3 w-100' disabled={mutation.isPending}>{mutation.isPending ? 'Регистрация...' : 'Зарегистрироваться'}</Button>
+                                    <Button variant='primary' type='submit' className='mt-3 w-100' disabled={mutation.isPending}>{mutation.isPending ? (<Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />) : 'Зарегистрироваться'}</Button>
                                 </Form>
                             </Card.Body>
                         </Card>
