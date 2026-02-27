@@ -4,7 +4,9 @@ import type z from 'zod'
 import { changeprofileSchema } from './changeprofile.schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import axiosInstance from '../../shared/api/axiosConfig'
+import { useEffect } from 'react'
 
 
 
@@ -13,6 +15,7 @@ async function getDoctorInfo() {
     const { data } = await axiosInstance.get('/doctor/profile');
     return data;
 }
+
 
 
 const formatDateForInput = (isoDate?: string) => {
@@ -24,13 +27,42 @@ const Profile = () => {
 
     type changeFormData = z.infer<typeof changeprofileSchema>
 
-    const { register, handleSubmit, formState: { errors } } = useForm<changeFormData>({ resolver: zodResolver(changeprofileSchema) });
+    function updateDoctorInfo(data: changeFormData) {
+        return axiosInstance.put('/doctor/profile', data);
+    }
+
+
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<changeFormData>({ resolver: zodResolver(changeprofileSchema) });
 
     const { data, isPending, } = useQuery({
-        queryKey: ['doctor-infos'],
+        queryKey: ['doctor-info'],
         queryFn: getDoctorInfo,
     })
-    console.log(data);
+
+    const mutation = useMutation({
+        mutationFn: updateDoctorInfo,
+        onSuccess: (response) => { alert(response) },
+        onError: (error) => { console.log(error) }
+
+    })
+
+    function onSubmitForm(data: changeFormData) {
+        console.log(data);
+        mutation.mutate(data);
+
+    }
+
+    useEffect(() => {
+        if (data) {
+            reset({
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                gender: data.gender.toLowerCase(),
+                birthday: formatDateForInput(data.birthday),
+            });
+        }
+    }, [data, reset]);
 
     return (
         <>
@@ -41,15 +73,16 @@ const Profile = () => {
                             <Card className='shadow-sm'>
                                 <Card.Header className='text-center mb-4 fs-3 '>Личный кабинет</Card.Header>
                                 <Card.Body>
-                                    <Form>
+                                    <Form onSubmit={handleSubmit(onSubmitForm, console.log)}>
                                         <Row>
                                             <Form.Group className='mb-3' controlId='name'>
                                                 <Form.Label>ФИО</Form.Label>
                                                 <Form.Control type='text' placeholder='Иванов Иван Иванович' style={{
                                                     filter: isPending ? 'blur(4px)' : 'none',
                                                     transition: 'filter 0.1s ease'
-                                                }} defaultValue={data?.name}></Form.Control>
+                                                }} required {...register("name")} isInvalid={!!errors.name}></Form.Control>
                                                 <Form.Control.Feedback type="invalid">
+                                                    {errors.name?.message}
                                                 </Form.Control.Feedback>
                                             </Form.Group>
                                         </Row>
@@ -60,12 +93,13 @@ const Profile = () => {
                                                     <Form.Select style={{
                                                         filter: isPending ? 'blur(4px)' : 'none',
                                                         transition: 'filter 0.1s ease'
-                                                    }} defaultValue={data?.gender?.toLowerCase() || ''}>
-                                                        <option value="">Выберите пол</option>
+                                                    }} {...register("gender")}
+                                                        isInvalid={!!errors.gender}>
                                                         <option value="male">Мужской</option>
                                                         <option value="female">Женский</option>
                                                     </Form.Select>
                                                     <Form.Control.Feedback type="invalid">
+                                                        {errors.gender?.message}
 
                                                     </Form.Control.Feedback>
                                                 </Form.Group>
@@ -76,8 +110,10 @@ const Profile = () => {
                                                     <Form.Control type='date' style={{
                                                         filter: isPending ? 'blur(4px)' : 'none',
                                                         transition: 'filter 0.1s ease'
-                                                    }} defaultValue={formatDateForInput(data?.birthday)}></Form.Control>
+                                                    }} required {...register("birthday")}
+                                                        isInvalid={!!errors.birthday}></Form.Control>
                                                     <Form.Control.Feedback type="invalid">
+                                                        {errors.birthday?.message}
 
                                                     </Form.Control.Feedback>
                                                 </Form.Group>
@@ -89,9 +125,10 @@ const Profile = () => {
                                                 <Form.Control type='tel' required placeholder='+7 777 777 7777' style={{
                                                     filter: isPending ? 'blur(4px)' : 'none',
                                                     transition: 'filter 0.1s ease'
-                                                }} defaultValue={data?.phone}></Form.Control>
+                                                }} {...register("phone")}
+                                                    isInvalid={!!errors.phone}></Form.Control>
                                                 <Form.Control.Feedback type="invalid">
-
+                                                    {errors.phone?.message}
                                                 </Form.Control.Feedback>
                                             </Form.Group>
                                         </Row>
@@ -101,8 +138,10 @@ const Profile = () => {
                                                 <Form.Control type='email' required placeholder='test@example.com' style={{
                                                     filter: isPending ? 'blur(4px)' : 'none',
                                                     transition: 'filter 0.1s ease'
-                                                }} defaultValue={data?.email}></Form.Control>
+                                                }} {...register("email")}
+                                                    isInvalid={!!errors.email}></Form.Control>
                                                 <Form.Control.Feedback type="invalid">
+                                                    {errors.email?.message}
                                                 </Form.Control.Feedback>
                                             </Form.Group>
                                         </Row>

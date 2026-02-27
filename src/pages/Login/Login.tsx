@@ -5,8 +5,7 @@ import { loginschema } from './login.schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import axiosInstance from '../../shared/api/axiosConfig'
+import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
 function setCookie(name: string, value: string, days: number) {
@@ -32,11 +31,6 @@ const Login = () => {
         return axios.post('https://mis-api.kreosoft.space/api/doctor/login', data)
     }
 
-    async function getDoctorInfo() {
-        const { data } = await axiosInstance.get('/doctor/profile')
-        return data
-    }
-
     const mutation = useMutation({
         mutationFn: login,
         onSuccess: (response) => {
@@ -52,12 +46,6 @@ const Login = () => {
     function onSubmit(data: LoginFormData) {
         mutation.mutate(data);
     }
-    const { data } = useQuery({
-        queryKey: ['doctor-info'],
-        queryFn: getDoctorInfo,
-        enabled: false
-    });
-
 
     return (
         <MainLayout>

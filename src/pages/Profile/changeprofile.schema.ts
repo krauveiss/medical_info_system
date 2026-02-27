@@ -19,9 +19,6 @@ export const changeprofileSchema = z.object({
     phone: z.string()
         .min(10, 'Введите корректный номер телефона'),
 
-    speciality: z.string()
-        .min(1, 'Выберите специальность'),
-
     email: z.string()
         .min(1, 'Введите email')
         .email('Некорректный формат email'),
