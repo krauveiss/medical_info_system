@@ -1,7 +1,46 @@
+import { useQuery } from '@tanstack/react-query'
 import MainLayout from '../../components/MainLayout/MainLayout'
-import { Button, Card, CardHeader, Col, Container, Form, ListGroup, Row } from 'react-bootstrap'
+import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Row } from 'react-bootstrap'
+import axiosInstance from '../../shared/api/axiosConfig';
+
+
+
+const formatDateForInput = (isoDate?: string) => {
+    if (!isoDate) return '';
+    return isoDate.split('T')[0];
+};
+
+type Patient = {
+    id?: string
+    name?: string
+    gender?: 'Male' | 'Female'
+    birthday?: string | null
+    createTime?: string
+}
+
+type Pagination = {
+    page: number
+    size: number
+    totalCount: number
+}
+
+type PatientResponse = {
+    patients: Patient[]
+    pagination: Pagination
+}
 
 const Patients = () => {
+
+    async function getPatients(): Promise<PatientResponse> {
+        const { data } = await axiosInstance.get('/patient/?size=30');
+        return data;
+    }
+    const { data, isPending } = useQuery({
+        queryFn: getPatients,
+        queryKey: ['patients']
+    });
+
+
     return (
         <>
             <MainLayout>
@@ -66,53 +105,34 @@ const Patients = () => {
                     </Card>
                     <Container>
                         <Row>
+                            {data?.patients.map((patient) => (
+                                <>
+                                    <Col xs={12} lg={6}>
+                                        <Card className='mt-3' id={patient?.id ?? crypto?.randomUUID()}>
+                                            <Card.Header >Пациент: <b>{patient?.name ? (<Badge style={{
+                                                display: "inline-block",
+                                                maxWidth: "80%",
+                                                overflow: "hidden",
+                                                whiteSpace: "nowrap",
+                                                textOverflow: "ellipsis",
+                                                verticalAlign: "middle"
+                                            }} bg='secondary'>{patient.name}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)}</b></Card.Header>
+                                            <ListGroup>
+                                                <ListGroup.Item>Пол — <b>{patient?.gender ? (<Badge bg='secondary'>{patient.gender}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
+                                                <ListGroup.Item>Дата рождения — <b>{patient?.birthday ? (<Badge bg='secondary'>{formatDateForInput(patient?.birthday)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
+                                            </ListGroup>
+                                        </Card>
+                                    </Col >
+                                </>
+                            ))}
 
-                            <Col xs={12} lg={6}>
-                                <Card className='mt-3'>
-                                    <Card.Header ><b>Test Test Test</b></Card.Header>
-                                    <ListGroup>
-                                        <ListGroup.Item variant='info'>Email — <b>Test</b></ListGroup.Item>
-                                        <ListGroup.Item>Пол — <b>Мужчина</b></ListGroup.Item>
-                                        <ListGroup.Item>Дата рождения — <b>26.02.1991</b></ListGroup.Item>
-                                    </ListGroup>
-                                </Card>
-                            </Col>
-                            <Col xs={12} lg={6}>
-                                <Card className='mt-3'>
-                                    <Card.Header ><b>Test Test Test</b></Card.Header>
-                                    <ListGroup>
-                                        <ListGroup.Item variant='info'>Email — <b>Test</b></ListGroup.Item>
-                                        <ListGroup.Item>Пол — <b>Мужчина</b></ListGroup.Item>
-                                        <ListGroup.Item>Дата рождения — <b>26.02.1991</b></ListGroup.Item>
-                                    </ListGroup>
-                                </Card>
-                            </Col>
-                            <Col xs={12} lg={6}>
-                                <Card className='mt-3'>
-                                    <Card.Header ><b>Test Test Test</b></Card.Header>
-                                    <ListGroup>
-                                        <ListGroup.Item variant='info'>Email — <b>Test</b></ListGroup.Item>
-                                        <ListGroup.Item>Пол — <b>Мужчина</b></ListGroup.Item>
-                                        <ListGroup.Item>Дата рождения — <b>26.02.1991</b></ListGroup.Item>
-                                    </ListGroup>
-                                </Card>
-                            </Col>
-                            <Col xs={12} lg={6}>
-                                <Card className='mt-3'>
-                                    <Card.Header ><b>Test Test Test</b></Card.Header>
-                                    <ListGroup>
-                                        <ListGroup.Item variant='info'>Email — <b>Test</b></ListGroup.Item>
-                                        <ListGroup.Item>Пол — <b>Мужчина</b></ListGroup.Item>
-                                        <ListGroup.Item>Дата рождения — <b>26.02.1991</b></ListGroup.Item>
-                                    </ListGroup>
-                                </Card>
-                            </Col>
-                            
+
+
                         </Row>
                     </Container>
 
                 </Container>
-            </MainLayout>
+            </MainLayout >
         </>
     )
 }

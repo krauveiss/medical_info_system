@@ -32,7 +32,6 @@ const AppNavbar = () => {
 
     return (
         <Navbar bg="dark" variant='dark' expand="lg">
-            <Button onClick={() => console.log([isPending, data])}>Test</Button>
             <Container>
                 <Navbar.Brand>h0spital</Navbar.Brand>
                 {(isPending && token) ? (<><NavbarText>Подождите, пожалуйста...</NavbarText></>) : (<><Navbar.Toggle aria-controls="basic-navbar-nav" />
