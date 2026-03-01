@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import MainLayout from '../../components/MainLayout/MainLayout'
-import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Row } from 'react-bootstrap'
+import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Pagination, Row, Spinner } from 'react-bootstrap'
 import axiosInstance from '../../shared/api/axiosConfig';
+import { useSearchParams } from 'react-router-dom';
 
 
 
@@ -19,9 +20,9 @@ type Patient = {
 }
 
 type Pagination = {
-    page: number
     size: number
-    totalCount: number
+    count: number
+    current: number
 }
 
 type PatientResponse = {
@@ -31,15 +32,48 @@ type PatientResponse = {
 
 const Patients = () => {
 
+    const [searchParams, setSearchParams] = useSearchParams()
+    const page = Number(searchParams.get('page') ?? 1)
+    const size = Number(searchParams.get('size') ?? 5)
+
     async function getPatients(): Promise<PatientResponse> {
-        const { data } = await axiosInstance.get('/patient/?size=30');
+        const { data } = await axiosInstance.get(`/patient/?page=${page}&size=${size}`);
         return data;
     }
     const { data, isPending } = useQuery({
         queryFn: getPatients,
-        queryKey: ['patients']
+        queryKey: ['patients', page, size]
     });
 
+    function handlePagClick(newPage: number) {
+        setSearchParams({ page: String(newPage), size: String(size) })
+    }
+
+
+
+    const renderPagination = () => {
+        if (!data?.pagination) return null
+        const { current, count } = data.pagination;
+
+        const items = []
+        for (let i = 1; i <= count; i++) {
+            items.push(
+                <Pagination.Item key={i} active={current === i} onClick={() => handlePagClick(i)}>{i}</Pagination.Item>
+            )
+        }
+        return (
+            <>
+                <div>
+                    <Pagination >
+                        <Pagination.Prev onClick={() => handlePagClick(current - 1)} disabled={current == 1}></Pagination.Prev>
+                        {items}
+                        <Pagination.Next onClick={() => handlePagClick(current + 1)} disabled={current === count}></Pagination.Next>
+                    </Pagination >
+                </div>
+
+            </>
+        )
+    }
 
     return (
         <>
@@ -105,30 +139,48 @@ const Patients = () => {
                     </Card>
                     <Container>
                         <Row>
-                            {data?.patients.map((patient) => (
-                                <>
-                                    <Col xs={12} lg={6}>
-                                        <Card className='mt-3' id={patient?.id ?? crypto?.randomUUID()}>
-                                            <Card.Header >Пациент: <b>{patient?.name ? (<Badge style={{
-                                                display: "inline-block",
-                                                maxWidth: "80%",
-                                                overflow: "hidden",
-                                                whiteSpace: "nowrap",
-                                                textOverflow: "ellipsis",
-                                                verticalAlign: "middle"
-                                            }} bg='secondary'>{patient.name}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)}</b></Card.Header>
-                                            <ListGroup>
-                                                <ListGroup.Item>Пол — <b>{patient?.gender ? (<Badge bg='secondary'>{patient.gender}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
-                                                <ListGroup.Item>Дата рождения — <b>{patient?.birthday ? (<Badge bg='secondary'>{formatDateForInput(patient?.birthday)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
-                                            </ListGroup>
-                                        </Card>
-                                    </Col >
-                                </>
-                            ))}
-
+                            {!isPending ?
+                                data?.patients.map((patient) => (
+                                    <>
+                                        <Col xs={12} lg={6}>
+                                            <Card className='mt-3' id={patient?.id ?? crypto?.randomUUID()}>
+                                                <Card.Header >Пациент: <b>{patient?.name ? (<Badge style={{
+                                                    display: "inline-block",
+                                                    maxWidth: "80%",
+                                                    overflow: "hidden",
+                                                    whiteSpace: "nowrap",
+                                                    textOverflow: "ellipsis",
+                                                    verticalAlign: "middle"
+                                                }} bg='secondary'>{patient.name}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)}</b></Card.Header>
+                                                <ListGroup>
+                                                    <ListGroup.Item>Пол — <b>{patient?.gender ? (<Badge bg='secondary'>{patient.gender}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
+                                                    <ListGroup.Item>Дата рождения — <b>{patient?.birthday ? (<Badge bg='secondary'>{formatDateForInput(patient?.birthday)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
+                                                </ListGroup>
+                                            </Card>
+                                        </Col >
+                                    </>
+                                )) :
+                                (<div style={{
+                                    width: '100%',
+                                    height: '50vh',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Spinner animation='border' />
+                                </div>)}
 
 
                         </Row>
+                        <div className="d-flex justify-content-center mt-4" style={{
+                            position: 'sticky',
+                            bottom: -20,
+                            zIndex: 1000,
+                            background: 'white',
+                            padding: '1rem 0'
+                        }}>
+                            {renderPagination()}
+                        </div>
                     </Container>
 
                 </Container>
