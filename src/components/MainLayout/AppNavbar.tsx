@@ -31,7 +31,7 @@ const AppNavbar = () => {
     const auth = !!data && !isError;
 
     return (
-        <Navbar bg="dark" variant='dark' expand="lg">
+        <Navbar bg="dark" variant='dark' expand="lg" style={{ position: "sticky", top: '0px', zIndex: 100 }}>
             <Container>
                 <Navbar.Brand>h0spital</Navbar.Brand>
                 {(isPending && token) ? (<><NavbarText>Подождите, пожалуйста...</NavbarText></>) : (<><Navbar.Toggle aria-controls="basic-navbar-nav" />

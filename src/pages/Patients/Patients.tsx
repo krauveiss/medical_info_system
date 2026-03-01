@@ -3,6 +3,7 @@ import MainLayout from '../../components/MainLayout/MainLayout'
 import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Pagination, Row, Spinner } from 'react-bootstrap'
 import axiosInstance from '../../shared/api/axiosConfig';
 import { useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
 
 
 
@@ -35,9 +36,31 @@ const Patients = () => {
     const [searchParams, setSearchParams] = useSearchParams()
     const page = Number(searchParams.get('page') ?? 1)
     const size = Number(searchParams.get('size') ?? 5)
+    const nameP = String(searchParams.get('name') ?? '')
+    const concl = String(searchParams.get('conclusions') ?? '')
+    const sorting = String(searchParams.get('sorting') ?? '')
+    const visits = String(searchParams.get('scheduledVisits') ?? false)
+    const onlyMine = String(searchParams.get('onlyMine') ?? false)
+
+    const [filters, setFilters] = useState({
+        name: nameP,
+        conclusions: concl,
+        scheduledVisits: visits === '0',
+        onlyMine: onlyMine === '0',
+        sorting: sorting
+    });
 
     async function getPatients(): Promise<PatientResponse> {
-        const { data } = await axiosInstance.get(`/patient/?page=${page}&size=${size}`);
+        const params = new URLSearchParams({
+            page: String(page),
+            size: String(size),
+            ...(filters.name ? { name: filters.name } : {}),
+            ...(filters.conclusions ? { conclusions: filters.conclusions } : {}),
+            ...(filters.sorting ? { sorting: filters.sorting } : {}),
+            ...(filters.scheduledVisits ? { scheduledVisits: 'True' } : {}),
+            ...(filters.onlyMine ? { onlyMine: 'True' } : {}),
+        });
+        const { data } = await axiosInstance.get(`/patient/?${params.toString()}`);
         return data;
     }
     const { data, isPending, refetch } = useQuery({
@@ -47,6 +70,23 @@ const Patients = () => {
 
     function handlePagClick(newPage: number) {
         setSearchParams({ page: String(newPage), size: String(size) })
+    }
+
+    function handleSerachButton() {
+        setSearchParams({
+            page: '1',
+            size: String(size),
+            name: filters.name || '',
+            conclusions: filters.conclusions || '',
+            sorting: filters.sorting || '',
+            scheduledVisits: filters.scheduledVisits ? '1' : '',
+            onlyMine: filters.onlyMine ? '1' : ''
+        });
+        refetch();
+    }
+
+    function handlePageSizeChange(newSize: number) {
+        setSearchParams({ page: String(page), size: String(newSize) })
     }
 
 
@@ -97,32 +137,41 @@ const Patients = () => {
                         <CardHeader className=''><b>Фильтры и сортировка</b></CardHeader>
                         <Card.Body>
                             <Row>
-                                <Col>
+                                <Col xs={12} xl={6} className='mb-2'>
                                     <Form.Label>Имя</Form.Label>
-                                    <Form.Control type='text' placeholder='Иванов Иван Иванович'></Form.Control>
+                                    <Form.Control type='text' placeholder='Иванов Иван Иванович' onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}></Form.Control>
                                 </Col>
                                 <Col>
                                     <Form.Label style={{
                                         whiteSpace: 'nowrap',
                                     }}>Имеющиеся заключения</Form.Label>
-                                    <Form.Select>
-                                        <option value=""></option>
+                                    <Form.Select onChange={(e) => setFilters(prev => ({ ...prev, conclusions: e.target.value }))}>
+                                        <option value="">Не выбрано</option>
+                                        <option value="Death">Смерть</option>
+                                        <option value="Recovery">Выздоровление</option>
+                                        <option value="Disease">Заболевание</option>
                                     </Form.Select>
 
                                 </Col>
                             </Row>
                             <Row className='mt-4 justify-content-between align-items-center'>
                                 <Col xs={6}>
-                                    <Form.Check type='switch' id='have-planned-visits' label='Есть запланированные визиты' ></Form.Check>
+                                    <Form.Check type='switch' id='have-planned-visits' label='Есть запланированные визиты' onChange={(e) => setFilters(prev => ({ ...prev, scheduledVisits: e.target.checked }))}></Form.Check>
                                 </Col>
                                 <Col>
-                                    <Form.Check type='switch' id='my-patients' label='Мои пациенты'></Form.Check>
+                                    <Form.Check type='switch' id='my-patients' label='Мои пациенты' onChange={(e) => setFilters(prev => ({ ...prev, onlyMine: e.target.checked }))}></Form.Check>
                                 </Col>
                                 <Col className='mt-3' md={4}>
                                     <Form.Label>Сортировка пациентов
                                     </Form.Label>
-                                    <Form.Select>
-                                        <option value=""></option>
+                                    <Form.Select onChange={(e) => setFilters(prev => ({ ...prev, sorting: e.target.value }))}>
+                                        <option value="">Не выбрано</option>
+                                        <option value="NameAsc">По имени (А-Я)</option>
+                                        <option value="NameDesc">По имени (Я-А)</option>
+                                        <option value="CreateAsc">По дате создания (сначала новые)</option>
+                                        <option value="CreateDesc">По дате создания (сначала старые)</option>
+                                        <option value="InspectionAsc">По дате осмотров(сначала старые)</option>
+                                        <option value="InspectionDesc">По дате осмотров (сначала новые)</option>
                                     </Form.Select>
                                 </Col>
                             </Row>
@@ -133,12 +182,17 @@ const Patients = () => {
                                         whiteSpace: 'nowrap',
                                     }}>Число пацинентов на странице
                                     </Form.Label>
-                                    <Form.Select>
-                                        <option value=""></option>
+                                    <Form.Select onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="15">15</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
                                     </Form.Select>
                                 </Col>
                                 <Col className='d-flex justify-content-end align-items-end'>
-                                    <Button onClick={() => refetch()}>
+                                    <Button onClick={() => handleSerachButton()}>
                                         Поиск
                                     </Button>
                                 </Col>
