@@ -39,14 +39,14 @@ const Patients = () => {
     const nameP = String(searchParams.get('name') ?? '')
     const concl = String(searchParams.get('conclusions') ?? '')
     const sorting = String(searchParams.get('sorting') ?? '')
-    const visits = String(searchParams.get('scheduledVisits') ?? false)
-    const onlyMine = String(searchParams.get('onlyMine') ?? false)
+    const visits = Boolean(searchParams.get('scheduledVisits') ?? false)
+    const onlyMine = Boolean(searchParams.get('onlyMine') ?? false)
 
     const [filters, setFilters] = useState({
         name: nameP,
         conclusions: concl,
-        scheduledVisits: visits === '0',
-        onlyMine: onlyMine === '0',
+        scheduledVisits: visits,
+        onlyMine: onlyMine,
         sorting: sorting
     });
 
@@ -60,6 +60,7 @@ const Patients = () => {
             ...(filters.scheduledVisits ? { scheduledVisits: 'True' } : {}),
             ...(filters.onlyMine ? { onlyMine: 'True' } : {}),
         });
+
         const { data } = await axiosInstance.get(`/patient/?${params.toString()}`);
         return data;
     }
@@ -69,7 +70,14 @@ const Patients = () => {
     });
 
     function handlePagClick(newPage: number) {
-        setSearchParams({ page: String(newPage), size: String(size) })
+        setSearchParams(prev => {
+            const params = Object.fromEntries(prev.entries());
+            return {
+                ...params,
+                page: String(newPage),
+                size: String(size)
+            }
+        })
     }
 
     function handleSerachButton() {
@@ -86,7 +94,14 @@ const Patients = () => {
     }
 
     function handlePageSizeChange(newSize: number) {
-        setSearchParams({ page: String(page), size: String(newSize) })
+        setSearchParams(prev => {
+            const params = Object.fromEntries(prev.entries());
+            return {
+                ...params,
+                page: String(page),
+                size: String(newSize)
+            }
+        })
     }
 
 
@@ -139,13 +154,13 @@ const Patients = () => {
                             <Row>
                                 <Col xs={12} xl={6} className='mb-2'>
                                     <Form.Label>Имя</Form.Label>
-                                    <Form.Control type='text' placeholder='Иванов Иван Иванович' onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}></Form.Control>
+                                    <Form.Control defaultValue={nameP} type='text' placeholder='Иванов Иван Иванович' onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}></Form.Control>
                                 </Col>
                                 <Col>
                                     <Form.Label style={{
                                         whiteSpace: 'nowrap',
                                     }}>Имеющиеся заключения</Form.Label>
-                                    <Form.Select onChange={(e) => setFilters(prev => ({ ...prev, conclusions: e.target.value }))}>
+                                    <Form.Select defaultValue={concl} onChange={(e) => setFilters(prev => ({ ...prev, conclusions: e.target.value }))}>
                                         <option value="">Не выбрано</option>
                                         <option value="Death">Смерть</option>
                                         <option value="Recovery">Выздоровление</option>
@@ -156,15 +171,15 @@ const Patients = () => {
                             </Row>
                             <Row className='mt-4 justify-content-between align-items-center'>
                                 <Col xs={6}>
-                                    <Form.Check type='switch' id='have-planned-visits' label='Есть запланированные визиты' onChange={(e) => setFilters(prev => ({ ...prev, scheduledVisits: e.target.checked }))}></Form.Check>
+                                    <Form.Check defaultChecked={visits} type='switch' id='have-planned-visits' label='Есть запланированные визиты' onChange={(e) => setFilters(prev => ({ ...prev, scheduledVisits: e.target.checked }))}></Form.Check>
                                 </Col>
                                 <Col>
-                                    <Form.Check type='switch' id='my-patients' label='Мои пациенты' onChange={(e) => setFilters(prev => ({ ...prev, onlyMine: e.target.checked }))}></Form.Check>
+                                    <Form.Check defaultChecked={onlyMine} type='switch' id='my-patients' label='Мои пациенты' onChange={(e) => setFilters(prev => ({ ...prev, onlyMine: e.target.checked }))}></Form.Check>
                                 </Col>
                                 <Col className='mt-3' md={4}>
                                     <Form.Label>Сортировка пациентов
                                     </Form.Label>
-                                    <Form.Select onChange={(e) => setFilters(prev => ({ ...prev, sorting: e.target.value }))}>
+                                    <Form.Select defaultValue={sorting} onChange={(e) => setFilters(prev => ({ ...prev, sorting: e.target.value }))}>
                                         <option value="">Не выбрано</option>
                                         <option value="NameAsc">По имени (А-Я)</option>
                                         <option value="NameDesc">По имени (Я-А)</option>
