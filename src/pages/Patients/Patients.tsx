@@ -40,9 +40,9 @@ const Patients = () => {
         const { data } = await axiosInstance.get(`/patient/?page=${page}&size=${size}`);
         return data;
     }
-    const { data, isPending } = useQuery({
+    const { data, isPending, refetch } = useQuery({
         queryFn: getPatients,
-        queryKey: ['patients', page, size]
+        queryKey: ['patients', page, size],
     });
 
     function handlePagClick(newPage: number) {
@@ -50,38 +50,48 @@ const Patients = () => {
     }
 
 
-
     const renderPagination = () => {
-        if (!data?.pagination) return null
+        if (!data?.pagination) return null;
         const { current, count } = data.pagination;
 
-        const items = []
-        for (let i = 1; i <= count; i++) {
-            items.push(
-                <Pagination.Item key={i} active={current === i} onClick={() => handlePagClick(i)}>{i}</Pagination.Item>
-            )
-        }
-        return (
-            <>
-                <div>
-                    <Pagination >
-                        <Pagination.Prev onClick={() => handlePagClick(current - 1)} disabled={current == 1}></Pagination.Prev>
-                        {items}
-                        <Pagination.Next onClick={() => handlePagClick(current + 1)} disabled={current === count}></Pagination.Next>
-                    </Pagination >
-                </div>
+        const items = [];
+        const start = Math.max(1, current - 2);
+        const end = Math.min(count, current + 2);
 
-            </>
-        )
+        if (start > 1) items.push(<Pagination.Ellipsis />);
+
+        for (let i = start; i <= end; i++) {
+            items.push(
+                <Pagination.Item key={i} active={current === i} onClick={() => handlePagClick(i)}>
+                    {i}
+                </Pagination.Item>
+            );
+        }
+
+        if (end < count) items.push(<Pagination.Ellipsis />);
+
+        return (
+            <Pagination className="flex-wrap justify-content-center">
+                <Pagination.Prev onClick={() => handlePagClick(current - 1)} disabled={current === 1} />
+                {items}
+                <Pagination.Next onClick={() => handlePagClick(current + 1)} disabled={current === count} />
+            </Pagination>
+        );
     }
+
 
     return (
         <>
             <MainLayout>
                 <Container className='mt-5'>
                     <div className="d-flex justify-content-between align-items-center">
-                        <h2><b>Пациенты</b></h2>
-                        <Button>Регистрация нового пациента</Button>
+                        <Col className="d-flex justify-content-between align-items-center">
+                            <h2><b>Пациенты</b></h2>
+                        </Col>
+
+                        <Col className="d-flex justify-content-end align-items-center">
+                            <Button>Регистрация нового пациента</Button>
+                        </Col>
                     </div>
                     <Card className='mt-3'>
                         <CardHeader className=''><b>Фильтры и сортировка</b></CardHeader>
@@ -128,7 +138,7 @@ const Patients = () => {
                                     </Form.Select>
                                 </Col>
                                 <Col className='d-flex justify-content-end align-items-end'>
-                                    <Button>
+                                    <Button onClick={() => refetch()}>
                                         Поиск
                                     </Button>
                                 </Col>
@@ -139,7 +149,7 @@ const Patients = () => {
                     </Card>
                     <Container>
                         <Row>
-                            {!isPending ?
+                            {!isPending || data === undefined ?
                                 data?.patients.map((patient) => (
                                     <>
                                         <Col xs={12} lg={6}>
