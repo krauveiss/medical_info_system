@@ -4,6 +4,7 @@ import Login from "../pages/Login/Login";
 import Profile from "../pages/Profile/Profile";
 import CheckAuth from "../shared/api/CheckAuth";
 import Patients from "../pages/Patients/Patients";
+import Patient from "../pages/Patient/Patient";
 
 const router = createBrowserRouter([
     {
@@ -22,6 +23,11 @@ const router = createBrowserRouter([
     {
         path: '/patients',
         element: <CheckAuth><Patients></Patients></CheckAuth>
+    }
+    ,
+    {
+        path: '/patient/:id',
+        element: <CheckAuth><Patient></Patient></CheckAuth>
     }
 ])
 

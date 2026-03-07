@@ -5,7 +5,7 @@ import { registerPatientSchema } from './registerPatientSchema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import axiosInstance from '../../../shared/api/axiosConfig'
+import axiosInstance from '../../shared/api/axiosConfig'
 
 const RegisterPatientForm = () => {
 

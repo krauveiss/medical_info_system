@@ -2,16 +2,17 @@ import { useQuery } from '@tanstack/react-query'
 import MainLayout from '../../components/MainLayout/MainLayout'
 import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Modal, Pagination, Row, Spinner } from 'react-bootstrap'
 import axiosInstance from '../../shared/api/axiosConfig';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
-import RegisterPatientForm from '../../components/MainLayout/Patient/RegisterPatientForm';
-
-
+import RegisterPatientForm from '../../components/Patient/RegisterPatientForm';
+import './patients.css'
 
 const formatDateForInput = (isoDate?: string) => {
     if (!isoDate) return '';
     return isoDate.split('T')[0];
 };
+
+
 
 type Patient = {
     id?: string
@@ -33,6 +34,7 @@ type PatientResponse = {
 }
 
 const Patients = () => {
+    const navigate = useNavigate();
 
     const [searchParams, setSearchParams] = useSearchParams()
     const page = Number(searchParams.get('page') ?? 1)
@@ -237,7 +239,7 @@ const Patients = () => {
                                 data?.patients.map((patient) => (
                                     <>
                                         <Col xs={12} lg={6}>
-                                            <Card className='mt-3' id={patient?.id ?? crypto?.randomUUID()}>
+                                            <Card className='mt-3 patient-card' id={patient?.id ?? crypto?.randomUUID()} onClick={() => navigate(`/patient/${patient?.id}`)}>
                                                 <Card.Header >Пациент: <b>{patient?.name ? (<Badge style={{
                                                     display: "inline-block",
                                                     maxWidth: "80%",
