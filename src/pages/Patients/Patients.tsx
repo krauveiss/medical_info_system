@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import MainLayout from '../../components/MainLayout/MainLayout'
-import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Pagination, Row, Spinner } from 'react-bootstrap'
+import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Modal, Pagination, Row, Spinner } from 'react-bootstrap'
 import axiosInstance from '../../shared/api/axiosConfig';
 import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
+import RegisterPatientForm from '../../components/MainLayout/Patient/RegisterPatientForm';
 
 
 
@@ -134,10 +135,24 @@ const Patients = () => {
         );
     }
 
+    const [modalShow, setModalShow] = useState(false);
+
+    const handleClose = () => setModalShow(false);
+    const handleShow = () => setModalShow(true);
+
 
     return (
         <>
             <MainLayout>
+                <Modal show={modalShow} onHide={handleClose} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title><b>Регистрация пациента</b></Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <RegisterPatientForm></RegisterPatientForm>
+                    </Modal.Body>
+                </Modal>
+
                 <Container className='mt-5'>
                     <div className="d-flex justify-content-between align-items-center">
                         <Col className="d-flex justify-content-between align-items-center">
@@ -145,7 +160,7 @@ const Patients = () => {
                         </Col>
 
                         <Col className="d-flex justify-content-end align-items-center">
-                            <Button>Регистрация нового пациента</Button>
+                            <Button onClick={handleShow}>Регистрация нового пациента</Button>
                         </Col>
                     </div>
                     <Card className='mt-3'>
