@@ -162,7 +162,7 @@ const Patients = () => {
                         </Col>
 
                         <Col className="d-flex justify-content-end align-items-center">
-                            <Button onClick={handleShow}>Регистрация нового пациента</Button>
+                            <Button onClick={handleShow}><b>Регистрация нового пациента</b></Button>
                         </Col>
                     </div>
                     <Card className='mt-3'>
@@ -225,7 +225,7 @@ const Patients = () => {
                                 </Col>
                                 <Col className='d-flex justify-content-end align-items-end'>
                                     <Button onClick={() => handleSerachButton()}>
-                                        Поиск
+                                        <b>Поиск</b>
                                     </Button>
                                 </Col>
                             </Row>

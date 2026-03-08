@@ -1,5 +1,5 @@
 import MainLayout from '../../components/MainLayout/MainLayout'
-import { Card, Container, Row, Col, Form, Button, Spinner} from 'react-bootstrap'
+import { Card, Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap'
 import type z from 'zod'
 import { registerSchema } from './register.schema'
 import { useForm } from 'react-hook-form'
@@ -36,7 +36,7 @@ const Register = () => {
     }
 
     async function getSpecialties(): Promise<SpecialityResponse> {
-        const { data } = await axios.get('https://mis-api.kreosoft.space/api/dictionary/speciality');
+        const { data } = await axios.get('https://mis-api.kreosoft.space/api/dictionary/speciality/?size=50');
         return data;
     }
     const { data, isLoading } = useQuery({
