@@ -1,10 +1,14 @@
-import React from 'react'
 import { useLocation } from 'react-router-dom'
 import axiosInstance from '../../shared/api/axiosConfig';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
 import { useQuery } from '@tanstack/react-query';
 import MainLayout from '../../components/MainLayout/MainLayout';
-import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Alert, Badge, Card, Col, Container, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
+import type { Speciality } from '../../shared/api/Models/Speciality';
+import axios from 'axios';
+import { useState } from 'react';
+import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 
 
 async function getPatientInfo(id: string): Promise<PatientCard> {
@@ -16,20 +20,59 @@ const formatDateForInput = (isoDate?: string) => {
     return isoDate.split('T')[0];
 };
 
+const formatDateForInputInsp = (isoDate?: string) => {
+    if (!isoDate) return '';
+    let k = isoDate.split('T');
+    let b = k[1].split(':');
+    return `${k[0]} ${b[0]}:${b[1]}`
+};
+
+
+async function getSpecialties(): Promise<SpecialityResponse> {
+    const { data } = await axios.get('https://mis-api.kreosoft.space/api/dictionary/speciality/?size=50');
+    return data;
+}
+
+type InpsectionPreviewResponse = {
+    inspections: InpsectionPreviewModel[]
+}
+
+
+async function getPatientInpsections(patient: string): Promise<InpsectionPreviewResponse> {
+    const { data } = await axiosInstance.get(`https://mis-api.kreosoft.space/api/patient/${patient}/inspections`);
+    return data;
+}
+
+
 
 
 
 const CreateInpspection = () => {
 
-    const location = useLocation();
-    const patientId = location.state.id;
+    const [repeatInpsection, setRepeatInpsection] = useState(false);
 
-    const { data, isError, isPending } = useQuery({
+    const location = useLocation();
+    const patientId = String(location.state.id);
+
+    const { data, isError } = useQuery({
         queryKey: ['patient-info', patientId],
         queryFn: () => getPatientInfo(patientId as string),
         retry: false
     })
 
+
+
+    const
+        { data: dataSpec, isLoading } = useQuery({
+            queryKey: ['specialties'],
+            queryFn: getSpecialties
+        });
+
+    const
+        { data: dataInpsections, isLoadingInpsections } = useQuery({
+            queryKey: ['inpsectionsPrev'],
+            queryFn: () => getPatientInpsections(patientId)
+        });
 
     return (
         <MainLayout>
@@ -59,32 +102,57 @@ const CreateInpspection = () => {
                                         <Card.Body>
                                             <Form>
                                                 <ListGroup >
-                                                    <ListGroup.Item className='m-0' style={{ border: 'none' }}>
-                                                        <Row className='justify-content-center align-items-center'>
-
-                                                            <Col lg={6}>
-                                                                <ToggleButtonGroup type="radio" name="options" defaultValue={1}>
-                                                                    <ToggleButton id="tbg-radio-1" value={1}>
+                                                    <ListGroup.Item className="m-0 border-0">
+                                                        <Row className="align-items-end g-3">
+                                                            <Col lg={4}>
+                                                                <Form.Label>Тип осмотра</Form.Label>
+                                                                <ToggleButtonGroup
+                                                                    type="radio"
+                                                                    name="inspectionType"
+                                                                    value={repeatInpsection ? 2 : 1}
+                                                                    onChange={(val: number) => setRepeatInpsection(val === 2)}
+                                                                    className="w-100">
+                                                                    <ToggleButton id="tbg-radio-1" value={1} variant="outline-primary">
                                                                         Первичный осмотр
                                                                     </ToggleButton>
-                                                                    <ToggleButton id="tbg-radio-2" value={2}>
+                                                                    <ToggleButton id="tbg-radio-2" value={2} variant="outline-primary">
                                                                         Повторный осмотр
                                                                     </ToggleButton>
                                                                 </ToggleButtonGroup>
-
                                                             </Col>
-                                                            <Col lg={6}>
 
-                                                                <Form.Group className='mb-2 mt-2' controlId='birthday' >
-                                                                    <Form.Label>Дата осмотра</Form.Label>
-                                                                    <Form.Control type='date' required
-                                                                    ></Form.Control>
+                                                            <Col lg={5}>
+                                                                <Form.Group>
+                                                                    <Form.Label>Предыдущий осмотр</Form.Label>
+                                                                    <Form.Select
+                                                                        disabled={!repeatInpsection}
+                                                                        required={repeatInpsection}>
+                                                                        <option>
+                                                                            {isLoading ? 'Загрузка...' : 'Выберите осмотр'}
+                                                                        </option>
+                                                                        {dataInpsections?.inspections.map((insp: InpsectionPreviewModel) => (
+                                                                            <option value={insp.id}>{formatDateForInputInsp(insp.date)} — {insp.diagnosis.code} ({insp.diagnosis.name})</option>
+                                                                        ))}
+                                                                    </Form.Select>
                                                                     <Form.Control.Feedback type="invalid">
+                                                                        Выберите осмотр
                                                                     </Form.Control.Feedback>
                                                                 </Form.Group>
                                                             </Col>
+
+                                                            <Col lg={3}>
+                                                                <Form.Group controlId="inspectionDate">
+                                                                    <Form.Label>Дата осмотра</Form.Label>
+                                                                    <Form.Control type="date" required />
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Укажите дату
+                                                                    </Form.Control.Feedback>
+                                                                </Form.Group>
+                                                            </Col>
+
                                                         </Row>
-                                                        <hr />
+
+                                                        <hr className="mt-4" />
                                                     </ListGroup.Item>
                                                     <ListGroup.Item style={{ border: 'none' }} >
                                                         <h5><b>Жалобы</b></h5>
@@ -111,11 +179,13 @@ const CreateInpspection = () => {
                                                                 <Form.Group className='' controlId='speciality'>
                                                                     <Form.Label>Cпециальность</Form.Label>
                                                                     <Form.Select required>
-
+                                                                        <option>{isLoading ? 'Загрузка' : 'Выберите специальность'}</option>
+                                                                        {dataSpec?.specialties.map((spec: Speciality) => (
+                                                                            <option value={spec.id}>{spec.name}</option>
+                                                                        ))}
                                                                     </Form.Select>
                                                                     <Form.Control.Feedback type="invalid">
                                                                     </Form.Control.Feedback>
-
                                                                 </Form.Group>
                                                             </Col>
                                                             <Row>

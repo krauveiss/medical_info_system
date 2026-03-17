@@ -1,0 +1,1 @@
+export type Conclusion = 'Disease' | 'Recovery' | 'Death';

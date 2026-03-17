@@ -6,17 +6,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
-
-type Speciality = {
-    id: string,
-    name: string,
-    createTime: string
-}
-
-type SpecialityResponse = {
-    specialties: Speciality[]
-}
-
+import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse'
+import type { Speciality } from '../../shared/api/Models/Speciality'
 
 
 const Register = () => {
