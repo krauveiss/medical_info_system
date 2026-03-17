@@ -3,12 +3,13 @@ import axiosInstance from '../../shared/api/axiosConfig';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
 import { useQuery } from '@tanstack/react-query';
 import MainLayout from '../../components/MainLayout/MainLayout';
-import { Alert, Badge, Card, Col, Container, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Alert, Badge, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
 import type { Speciality } from '../../shared/api/Models/Speciality';
 import axios from 'axios';
 import { useState } from 'react';
 import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
+import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel';
 
 
 async function getPatientInfo(id: string): Promise<PatientCard> {
@@ -37,6 +38,11 @@ type InpsectionPreviewResponse = {
     inspections: InpsectionPreviewModel[]
 }
 
+type DiagResponse = {
+    records: DiagnosisModel[]
+}
+
+
 
 async function getPatientInpsections(patient: string): Promise<InpsectionPreviewResponse> {
     const { data } = await axiosInstance.get(`https://mis-api.kreosoft.space/api/patient/${patient}/inspections`);
@@ -45,9 +51,19 @@ async function getPatientInpsections(patient: string): Promise<InpsectionPreview
 
 
 
+async function getDiags(request: string): Promise<DiagResponse> {
+    const { data } = await axiosInstance.get(`https://mis-api.kreosoft.space/api/dictionary/icd10?request=${request}`);
+    return data;
+}
+
+
 
 
 const CreateInpspection = () => {
+
+
+
+    const [value, setValue] = useState('');
 
     const [repeatInpsection, setRepeatInpsection] = useState(false);
 
@@ -69,11 +85,20 @@ const CreateInpspection = () => {
         });
 
     const
-        { data: dataInpsections, isLoadingInpsections } = useQuery({
+        { data: dataInpsections } = useQuery({
             queryKey: ['inpsectionsPrev'],
             queryFn: () => getPatientInpsections(patientId)
         });
 
+    const
+        { data: dataDiag } = useQuery({
+            queryKey: ['dataDiag', value],
+            queryFn: () => getDiags(value),
+        });
+
+    function handleCodeChange(value: string) {
+        setValue(value);
+    }
     return (
         <MainLayout>
             <div>
@@ -163,6 +188,7 @@ const CreateInpspection = () => {
                                                         <h5><b>Анамнез заболевания</b></h5>
                                                         <Form.Control as="textarea" rows={4} placeholder="Болен в течение суток, доставлен бригадой СМП" className='mt-3' style={{ height: '60px' }} />
                                                     </ListGroup.Item>
+                                                    <hr />
                                                     <ListGroup.Item style={{ border: 'none' }} className='mt-3'>
                                                         <h5><b>Консультация</b></h5>
                                                         <Row className='justify-content-center align-items-center'>
@@ -196,7 +222,63 @@ const CreateInpspection = () => {
 
                                                         <hr className='mb-3' />
                                                     </ListGroup.Item>
+
+                                                    <ListGroup.Item style={{ border: 'none' }} className='mt-3'>
+                                                        <h5><b>Жалобы</b></h5>
+                                                        <Row className='justify-content-center align-items-center'>
+
+                                                            <Col>
+                                                                <Form.Check
+                                                                    type="switch"
+                                                                    id="custom-switch"
+                                                                    label="Требуется консультация"
+                                                                    defaultChecked={false}
+                                                                />
+                                                            </Col>
+                                                            <Col>
+                                                                <Form.Group className='' controlId='speciality'>
+                                                                    <Form.Label>Cпециальность</Form.Label>
+                                                                    <Form.Select required>
+                                                                        <option>{isLoading ? 'Загрузка' : 'Выберите специальность'}</option>
+                                                                        {dataSpec?.specialties.map((spec: Speciality) => (
+                                                                            <option value={spec.id}>{spec.name}</option>
+                                                                        ))}
+                                                                    </Form.Select>
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                    </Form.Control.Feedback>
+                                                                </Form.Group>
+                                                            </Col>
+                                                            <Row>
+                                                                <Form.Control as="textarea" rows={4} placeholder="Комментарий" className='mt-3' style={{ height: '60px' }} />
+                                                            </Row>
+
+                                                        </Row>
+
+                                                        <hr className='mb-3' />
+                                                    </ListGroup.Item>
+                                                    <Dropdown>
+                                                        <Dropdown.Toggle className="w-100 p-0 border-0 bg-transparent">
+                                                            <Form.Control
+                                                                placeholder="Начинайте вводить диагноз"
+                                                                value={value}
+                                                                onChange={(e) => handleCodeChange(e.target.value)}
+                                                            />
+                                                        </Dropdown.Toggle>
+
+                                                        <Dropdown.Menu className="w-100">
+                                                            {dataDiag?.records.map((item, index) => (
+                                                                <Dropdown.Item
+                                                                    key={index}
+                                                                    onClick={() => setValue(item.name)}
+                                                                >
+                                                                    {item.code} — {item.name}
+                                                                </Dropdown.Item>
+                                                            ))}
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
                                                 </ListGroup>
+
+
 
 
                                             </Form>
