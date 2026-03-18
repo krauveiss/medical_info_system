@@ -1,9 +1,9 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axiosInstance from '../../shared/api/axiosConfig';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
 import { useQuery } from '@tanstack/react-query';
 import MainLayout from '../../components/MainLayout/MainLayout';
-import { Alert, Badge, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
 import type { Speciality } from '../../shared/api/Models/Speciality';
 import axios from 'axios';
@@ -60,10 +60,11 @@ async function getDiags(request: string): Promise<DiagResponse> {
 
 
 const CreateInpspection = () => {
+    const navigate = useNavigate();
 
-
-
+    const [selectedDiag, setSelectedDiag] = useState<DiagnosisModel | null>(null);
     const [value, setValue] = useState('');
+    const [conclType, setconclType] = useState('Болезнь');
 
     const [repeatInpsection, setRepeatInpsection] = useState(false);
 
@@ -109,7 +110,7 @@ const CreateInpspection = () => {
                     </div>
                 ) : (
                     <>
-                        <Container className='mt-5'>
+                        <Container className='mt-5 mb-5'>
                             <Col className="d-flex flex-column">
                                 <h2><b>Создание осмотра</b></h2>
                                 <Card className='d-flex justify-content-center align-items-left mt-1'>
@@ -224,62 +225,80 @@ const CreateInpspection = () => {
                                                     </ListGroup.Item>
 
                                                     <ListGroup.Item style={{ border: 'none' }} className='mt-3'>
-                                                        <h5><b>Жалобы</b></h5>
+                                                        <h5><b>Диагноз</b></h5>
                                                         <Row className='justify-content-center align-items-center'>
 
-                                                            <Col>
-                                                                <Form.Check
-                                                                    type="switch"
-                                                                    id="custom-switch"
-                                                                    label="Требуется консультация"
-                                                                    defaultChecked={false}
-                                                                />
-                                                            </Col>
-                                                            <Col>
-                                                                <Form.Group className='' controlId='speciality'>
-                                                                    <Form.Label>Cпециальность</Form.Label>
-                                                                    <Form.Select required>
-                                                                        <option>{isLoading ? 'Загрузка' : 'Выберите специальность'}</option>
-                                                                        {dataSpec?.specialties.map((spec: Speciality) => (
-                                                                            <option value={spec.id}>{spec.name}</option>
-                                                                        ))}
-                                                                    </Form.Select>
-                                                                    <Form.Control.Feedback type="invalid">
-                                                                    </Form.Control.Feedback>
-                                                                </Form.Group>
-                                                            </Col>
+                                                            <Dropdown className='mt-2'>
+                                                                <Dropdown.Toggle className="w-100 p-0 border-0 bg-transparent">
+                                                                    <Form.Control
+                                                                        placeholder="Начинайте вводить диагноз"
+                                                                        value={value}
+                                                                        onChange={(e) => handleCodeChange(e.target.value)}
+                                                                    />
+                                                                </Dropdown.Toggle>
+
+                                                                <Dropdown.Menu className="w-100">
+                                                                    {dataDiag?.records.map((item, index) => (
+                                                                        <Dropdown.Item
+                                                                            key={index}
+                                                                            onClick={() => { setValue(item.name); setSelectedDiag(item) }}
+                                                                        >
+                                                                            {item.code} — {item.name}
+                                                                        </Dropdown.Item>
+                                                                    ))}
+                                                                </Dropdown.Menu>
+                                                            </Dropdown>
                                                             <Row>
-                                                                <Form.Control as="textarea" rows={4} placeholder="Комментарий" className='mt-3' style={{ height: '60px' }} />
+                                                                <Form.Control as="textarea" rows={4} placeholder="Расшифровка" style={{ height: '60px' }} />
                                                             </Row>
 
                                                         </Row>
-
                                                         <hr className='mb-3' />
                                                     </ListGroup.Item>
-                                                    <Dropdown>
-                                                        <Dropdown.Toggle className="w-100 p-0 border-0 bg-transparent">
-                                                            <Form.Control
-                                                                placeholder="Начинайте вводить диагноз"
-                                                                value={value}
-                                                                onChange={(e) => handleCodeChange(e.target.value)}
-                                                            />
-                                                        </Dropdown.Toggle>
 
-                                                        <Dropdown.Menu className="w-100">
-                                                            {dataDiag?.records.map((item, index) => (
-                                                                <Dropdown.Item
-                                                                    key={index}
-                                                                    onClick={() => setValue(item.name)}
-                                                                >
-                                                                    {item.code} — {item.name}
-                                                                </Dropdown.Item>
-                                                            ))}
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <ListGroup.Item style={{ border: 'none' }} >
+                                                        <h5><b>Рекомендации по лечению</b></h5>
+                                                        <Form.Control as="textarea" rows={4} placeholder="..." className='mt-3' style={{ height: '60px' }} />
+                                                    </ListGroup.Item>
+                                                    <hr className='mb-2' />
+
+                                                    <ListGroup.Item style={{ border: 'none' }} >
+                                                        <h5><b>Заключение</b></h5>
+                                                        <Row className='align-items-end justify-content-center'>
+                                                            <Col lg={4}>
+                                                                <Form.Select onChange={(e) => setconclType(e.target.value)}>
+                                                                    <option value="Болезнь">Болезнь</option>
+                                                                    <option value="Выздоровление">Выздоровление</option>
+                                                                    <option value="Смерть">Смерть</option>
+                                                                </Form.Select>
+                                                            </Col>
+                                                            <Col lg={4}>
+                                                                <Form.Group controlId="nextInspectionDate" className={conclType == 'Болезнь' ? 'd-block' : 'd-none'}>
+                                                                    <Form.Label className='mt-2'>Дата следующего осмотра</Form.Label>
+                                                                    <Form.Control type="date" required />
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Укажите дату
+                                                                    </Form.Control.Feedback>
+                                                                </Form.Group>
+
+                                                                <Form.Group controlId="deathDate" className={conclType == 'Смерть' ? 'd-block' : 'd-none'}>
+                                                                    <Form.Label className='mt-2'>Дата смерти</Form.Label>
+                                                                    <Form.Control type="date" required />
+                                                                    <Form.Control.Feedback type="invalid">
+                                                                        Укажите дату
+                                                                    </Form.Control.Feedback>
+                                                                </Form.Group>
+                                                            </Col>
+
+                                                        </Row>
+                                                    </ListGroup.Item>
+
                                                 </ListGroup>
-
-
-
+                                                <hr className='mb-2' />
+                                                <div className='d-flex justify-content-center mt-3 gap-3'>
+                                                    <Button>Сохранить осмотр</Button>
+                                                    <Button variant="secondary" onClick={() => navigate(`/patient/${patientId}`)}>Отмена</Button>
+                                                </div>
 
                                             </Form>
                                         </Card.Body>
