@@ -1,1 +1,1 @@
-export type DiagnosisType = 'Main' | 'Concomitant' | 'Complication ';
+export type DiagnosisType = 'Main' | 'Concomitant' | 'Complication';

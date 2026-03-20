@@ -13,11 +13,11 @@ export const inspectionSchema = z.object({
     nextVisitDate: z.string().optional(),
     previousInspectionId: z.string().optional(),
     deathDate: z.string().optional(),
-    diagnosis: z.object({
+    diagnosis: z.array(z.object({
         icdDiagnosisId: z.string(),
         description: z.string(),
         type: z.enum(['Main', 'Concomitant', 'Complication']),
-    }),
+    })),
     consultations: z.array(
         z.object({
             specialityId: z.string(),
@@ -48,6 +48,14 @@ export const inspectionSchema = z.object({
             code: ZodIssueCode.custom,
             message: 'Специальности не должны повторяться',
             path: ['consultations']
+        });
+    }
+    const diag = data.diagnosis?.map(c => c.type);
+    if (!diag.includes('Main')) {
+        ctx.addIssue({
+            code: ZodIssueCode.custom,
+            message: 'Осмотр должен иметь минимум 1 диагноз с типом "Основной',
+            path: ['diagnosis']
         });
     }
 

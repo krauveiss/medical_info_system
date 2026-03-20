@@ -6,14 +6,15 @@ import MainLayout from '../../components/MainLayout/MainLayout';
 import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
 import type { Speciality } from '../../shared/api/Models/Speciality';
-import axios from 'axios';
-import { useState } from 'react';
+import axios, { all } from 'axios';
+import { useRef, useState } from 'react';
 import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel';
 import type z from 'zod';
 import { inspectionSchema } from './inspectionSchema';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { DiagnosisType } from '../../shared/api/Models/DiagnosisType';
 
 
 async function getPatientInfo(id: string): Promise<PatientCard> {
@@ -65,15 +66,21 @@ async function getDiags(request: string): Promise<DiagResponse> {
 
 const CreateInpspection = () => {
     type CreateInspectionData = z.infer<typeof inspectionSchema>;
-    const { register, handleSubmit, formState: { errors }, reset, control, watch } = useForm<CreateInspectionData>({ resolver: zodResolver(inspectionSchema) });
+    const { register, handleSubmit, formState: { errors }, reset, control, watch, getValues } = useForm<CreateInspectionData>({
+        resolver: zodResolver(inspectionSchema), defaultValues: {
+            diagnosis: [],
+            consultations: []
+        }
+    });
 
     const navigate = useNavigate();
+    const diadDescriptionRef = useRef<HTMLTextAreaElement>(null);
 
     const [selectedDiag, setSelectedDiag] = useState<DiagnosisModel | null>(null);
     const [value, setValue] = useState('');
-    const [conclType, setconclType] = useState('Болезнь');
-
+    const [allDiags, setAllDiags] = useState<DiagnosisModel[]>([]);
     const [repeatInpsection, setRepeatInpsection] = useState(false);
+    const [selectedDiagType, setSelectedDiagType] = useState<DiagnosisType>('Main');
 
     const location = useLocation();
     const patientId = String(location.state.id);
@@ -83,14 +90,42 @@ const CreateInpspection = () => {
         name: 'consultations'
     });
 
+    const { fields: diags, append: appendDiags, remove: removeDiags } = useFieldArray({
+        control,
+        name: 'diagnosis'
+    });
+
     const { data, isError } = useQuery({
         queryKey: ['patient-info', patientId],
         queryFn: () => getPatientInfo(patientId as string),
         retry: false
     })
+    function handleAddDiag() {
+        if (selectedDiag == null) {
+            alert('Не выбран диагноз');
+            return
+        }
+
+        selectedDiag.description = diadDescriptionRef.current?.value;
+        selectedDiag.type = selectedDiagType;
+        appendDiags({
+            icdDiagnosisId: selectedDiag.id,
+            description: selectedDiag.description,
+            type: selectedDiag.type
+        });
+        setAllDiags([...allDiags, selectedDiag]);
+        setSelectedDiag(null);
+        setValue('');
+        diadDescriptionRef.current.value = "";
+
+
+
+
+    }
 
 
     const needConsult = watch('consultations')?.length > 0;
+    const conclType = watch('conclusion');
 
     const
         { data: dataSpec, isLoading } = useQuery({
@@ -113,9 +148,14 @@ const CreateInpspection = () => {
     function handleCodeChange(value: string) {
         setValue(value);
     }
+
+
     const handleSendForm = (data: CreateInspectionData) => {
-        console.log('s');
+        console.log(data);
     }
+    const onError = (errors: any) => {
+        console.log('ERRORS:', errors);
+    };
     return (
         <MainLayout>
             <div>
@@ -142,7 +182,7 @@ const CreateInpspection = () => {
                                 <Row className='justify-content-center mt-4' >
                                     <Card className='shadow-sm'>
                                         <Card.Body>
-                                            <Form onSubmit={handleSubmit(handleSendForm)}>
+                                            <Form onSubmit={handleSubmit(handleSendForm, onError)}>
                                                 <ListGroup >
                                                     <ListGroup.Item className="m-0 border-0">
                                                         <Row className="align-items-end g-3">
@@ -152,7 +192,12 @@ const CreateInpspection = () => {
                                                                     type="radio"
                                                                     name="inspectionType"
                                                                     value={repeatInpsection ? 2 : 1}
-                                                                    onChange={(val: number) => { setRepeatInpsection(val === 2); reset({ previousInspectionId: 'k' }) }}
+                                                                    onChange={(val: number) => {
+                                                                        setRepeatInpsection(val === 2); reset({
+                                                                            ...getValues(),
+                                                                            previousInspectionId: 'k'
+                                                                        })
+                                                                    }}
                                                                     className="w-100">
                                                                     <ToggleButton id="tbg-radio-1" value={1} variant="outline-primary">
                                                                         Первичный осмотр
@@ -240,7 +285,7 @@ const CreateInpspection = () => {
                                                             </Col>
 
                                                             {fields.map((field, index) => (
-                                                                <Card className='p-2' style={{ border: 'none' }} >
+                                                                <Card className='p-2' style={{ border: 'none' }} key={field.id}>
                                                                     <Row className='g-2 align-items-start'>
                                                                         <Col lg={4}>
                                                                             <Form.Select {...register(`consultations.${index}.specialityId`)}>
@@ -274,6 +319,9 @@ const CreateInpspection = () => {
                                                             } className={needConsult ? 'mt-2 d-block' : 'mt-2 d-none'}>
                                                                 Добавить еще
                                                             </Button>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                {errors.consultations?.message}
+                                                            </Form.Control.Feedback>
 
                                                         </Row>
 
@@ -282,6 +330,41 @@ const CreateInpspection = () => {
 
                                                     <ListGroup.Item style={{ border: 'none' }} className='mt-3'>
                                                         <h5><b>Диагноз</b></h5>
+
+
+                                                        {/* {diags.map((field, index) => (
+                                                            <Card key={field.id} className='p-2 mt-2'>
+                                                                <Row className='g-2 align-items-start' style={{ border: 'None' }}>
+                                                                    <Col>
+                                                                        <h6>Диагноз: <b>{field.icdDiagnosisId}</b></h6>
+                                                                        <h6>Тип диагноза: <b>{field.type}</b></h6>
+                                                                        <h6>Описание: <b>{field.description}</b></h6>
+                                                                    </Col>
+                                                                    <Col>
+                                                                        <Button onClick={() => removeDiags(index)}>
+                                                                            Удалить из списка
+                                                                        </Button>
+                                                                    </Col>
+                                                                </Row>
+
+                                                            </Card>
+
+                                                        ))} */}
+                                                        {allDiags.map((e) => (
+                                                            <Card key={e.id} className='p-2 mt-2'>
+                                                                <Row className='g-2 align-items-start' style={{ border: 'None' }}>
+                                                                    <Col>
+                                                                        <h6>Диагноз: <b>{e.name} ({e.code})</b></h6>
+                                                                        <h6>Тип диагноза: <b>{e.type}</b></h6>
+                                                                        {e.description == "" ? (<h6>Без описания</h6>) : (<h6>Описание: <b>{e.description}</b></h6>)}
+
+                                                                    </Col>
+                                                                </Row>
+
+                                                            </Card>
+                                                        ))
+
+                                                        }
                                                         <Row className='justify-content-center align-items-center'>
 
                                                             <Dropdown className='mt-2'>
@@ -305,10 +388,23 @@ const CreateInpspection = () => {
                                                                 </Dropdown.Menu>
                                                             </Dropdown>
                                                             <Row>
-                                                                <Form.Control as="textarea" rows={4} placeholder="Расшифровка" style={{ height: '60px' }} />
+                                                                <Form.Control as="textarea" rows={4} placeholder="Расшифровка" style={{ height: '60px' }} ref={diadDescriptionRef} />
+                                                                <Form.Select className='mt-2' onChange={(e) => setSelectedDiagType(e.target.value as DiagnosisType)}>
+                                                                    <option value="Main">Основной</option>
+                                                                    <option value="Concomitant">Сопутствующий</option>
+                                                                    <option value="Complication">Осложнение</option>
+                                                                </Form.Select>
                                                             </Row>
 
+
                                                         </Row>
+                                                        <Button className='mt-2' onClick={() => handleAddDiag()}>Добавить диагноз</Button>
+                                                        {errors.diagnosis?.message && (
+                                                            <div className="text-danger mt-2">
+                                                                {errors.diagnosis.message}
+                                                            </div>
+                                                        )}
+
                                                         <hr className='mb-3' />
                                                     </ListGroup.Item>
 
@@ -325,28 +421,37 @@ const CreateInpspection = () => {
                                                         <h5><b>Заключение</b></h5>
                                                         <Row className='align-items-end justify-content-center'>
                                                             <Col lg={4}>
-                                                                <Form.Select onChange={(e) => setconclType(e.target.value)}>
-                                                                    <option value="Болезнь">Болезнь</option>
-                                                                    <option value="Выздоровление">Выздоровление</option>
-                                                                    <option value="Смерть">Смерть</option>
+                                                                <Form.Select isInvalid={!!errors.conclusion} {...register('conclusion')} >
+                                                                    <option value="Disease">Болезнь</option>
+                                                                    <option value="Recovery">Выздоровление</option>
+                                                                    <option value="Death">Смерть</option>
                                                                 </Form.Select>
+                                                                <Form.Control.Feedback type="invalid">
+                                                                    {errors.conclusion?.message}
+                                                                </Form.Control.Feedback>
                                                             </Col>
                                                             <Col lg={4}>
-                                                                <Form.Group controlId="nextInspectionDate" className={conclType == 'Болезнь' ? 'd-block' : 'd-none'}>
-                                                                    <Form.Label className='mt-2'>Дата следующего осмотра</Form.Label>
-                                                                    <Form.Control type="date" />
-                                                                    <Form.Control.Feedback type="invalid">
-                                                                        Укажите дату
-                                                                    </Form.Control.Feedback>
-                                                                </Form.Group>
 
-                                                                <Form.Group controlId="deathDate" className={conclType == 'Смерть' ? 'd-block' : 'd-none'}>
-                                                                    <Form.Label className='mt-2'>Дата смерти</Form.Label>
-                                                                    <Form.Control type="date" />
-                                                                    <Form.Control.Feedback type="invalid">
-                                                                        Укажите дату
-                                                                    </Form.Control.Feedback>
-                                                                </Form.Group>
+                                                                {conclType === 'Death' && (
+                                                                    <Form.Group controlId="deathDate">
+                                                                        <Form.Label className='mt-2'>Дата и время смерти</Form.Label>
+                                                                        <Form.Control type="datetime-local" isInvalid={!!errors.deathDate}  {...register('deathDate')} />
+                                                                        <Form.Control.Feedback type="invalid">
+                                                                            {errors.deathDate?.message}
+                                                                        </Form.Control.Feedback>
+                                                                    </Form.Group>
+                                                                )}
+                                                                {conclType === 'Disease' && (
+                                                                    <Form.Group controlId="nextInspectionDate" >
+                                                                        <Form.Label className='mt-2'>Дата и время следующего осмотра</Form.Label>
+                                                                        <Form.Control type="datetime-local" isInvalid={!!errors.nextVisitDate}  {...register('nextVisitDate')} />
+                                                                        <Form.Control.Feedback type="invalid">
+                                                                            {errors.nextVisitDate?.message}
+                                                                        </Form.Control.Feedback>
+                                                                    </Form.Group>
+                                                                )}
+
+
                                                             </Col>
 
                                                         </Row>
