@@ -42,7 +42,7 @@ const Profile = () => {
     const mutation = useMutation({
         mutationFn: updateDoctorInfo,
         onSuccess: () => { alert("Профиль успешно обновлен"); },
-        onError: (error) => { alert(error.response?.data.message || 'Ошибка при обновлении профиля'); },
+        onError: (error: any) => { alert(error.response?.data?.message || 'Ошибка при обновлении профиля'); },
 
     })
 

@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import axiosInstance from '../../shared/api/axiosConfig';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import MainLayout from '../../components/MainLayout/MainLayout';
 import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
@@ -32,6 +32,7 @@ const formatDateForInputInsp = (isoDate?: string) => {
     let b = k[1].split(':');
     return `${k[0]} ${b[0]}:${b[1]}`
 };
+
 
 
 async function getSpecialties(): Promise<SpecialityResponse> {
@@ -68,7 +69,7 @@ const CreateInpspection = () => {
     type CreateInspectionData = z.infer<typeof inspectionSchema>;
     const { register, handleSubmit, formState: { errors }, reset, control, watch, getValues } = useForm<CreateInspectionData>({
         resolver: zodResolver(inspectionSchema), defaultValues: {
-            diagnosis: [],
+            diagnoses: [],
             consultations: []
         }
     });
@@ -85,14 +86,19 @@ const CreateInpspection = () => {
     const location = useLocation();
     const patientId = String(location.state.id);
 
+    async function createInspection(data: CreateInspectionData) {
+        return axiosInstance.post(`https://mis-api.kreosoft.space/api/patient/${patientId}/inspections`, data)
+    }
+
+
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'consultations'
     });
 
-    const { fields: diags, append: appendDiags, remove: removeDiags } = useFieldArray({
+    const { fields: diags, append: appendDiags } = useFieldArray({
         control,
-        name: 'diagnosis'
+        name: 'diagnoses'
     });
 
     const { data, isError } = useQuery({
@@ -150,12 +156,22 @@ const CreateInpspection = () => {
     }
 
 
-    const handleSendForm = (data: CreateInspectionData) => {
-        console.log(data);
-    }
     const onError = (errors: any) => {
         console.log('ERRORS:', errors);
     };
+
+    const mutation = useMutation({
+        mutationFn: createInspection,
+        onSuccess: () => { alert("Success register"); },
+        onError: (error: any) => {
+            alert(error.response?.data?.message);
+        }
+    });
+
+    const handleSendForm = (data: CreateInspectionData) => {
+        console.log(data);
+        mutation.mutate(data);
+    }
     return (
         <MainLayout>
             <div>
@@ -399,9 +415,9 @@ const CreateInpspection = () => {
 
                                                         </Row>
                                                         <Button className='mt-2' onClick={() => handleAddDiag()}>Добавить диагноз</Button>
-                                                        {errors.diagnosis?.message && (
+                                                        {errors.diagnoses?.message && (
                                                             <div className="text-danger mt-2">
-                                                                {errors.diagnosis.message}
+                                                                {errors.diagnoses.message}
                                                             </div>
                                                         )}
 
