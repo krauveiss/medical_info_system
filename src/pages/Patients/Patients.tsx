@@ -239,7 +239,7 @@ const Patients = () => {
                                 data?.patients.map((patient) => (
                                     <>
                                         <Col xs={12} lg={6}>
-                                            <Card className='mt-3 patient-card' id={patient?.id ?? crypto?.randomUUID()} onClick={() => navigate(`/patient/${patient?.id}`)}>
+                                            <Card className='mt-3 patient-card' id={patient?.id ?? crypto?.randomUUID()} onClick={() => navigate(`/patient/${patient?.id}`)} key={patient.id}>
                                                 <Card.Header >Пациент: <b>{patient?.name ? (<Badge style={{
                                                     display: "inline-block",
                                                     maxWidth: "80%",

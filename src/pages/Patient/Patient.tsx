@@ -1,10 +1,11 @@
-import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import MainLayout from '../../components/MainLayout/MainLayout';
 import axiosInstance from '../../shared/api/axiosConfig';
 import { useQuery } from '@tanstack/react-query';
-import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, ListGroup, Row } from 'react-bootstrap';
+import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
+import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 
 
 
@@ -13,29 +14,55 @@ const formatDateForInput = (isoDate?: string) => {
     return isoDate.split('T')[0];
 };
 
+type InspectionResponse = {
+    inspections: InpsectionPreviewModel[],
+    pagination: {
+        size: number,
+        count: number,
+        current: number
+    }
+}
 
 async function getPatientInfo(id: string): Promise<PatientCard> {
     const { data } = await axiosInstance.get(`/patient/${id}`)
     return data;
 }
 
-async function getInpsectionsInfo(id: string) {
-    const { data } = await axiosInstance.get(`/patient/${id}/inspections`)
-    return data;
-}
-
 
 
 const Patient = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = Number(searchParams.get('page') ?? 1);
+    const size = Number(searchParams.get('size') ?? 5);
+    const grouped = Boolean(searchParams.get('grouped') ?? 0);
+    const icd = Array(searchParams.get('icdRoots') ?? 1);
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const patient = {
-        name: "test",
-        birthday: "test",
-        gender: 'Male'
-    }
+    const [filters, setFilters] = useState({
+        grouped: grouped,
+        icdRoots: icd,
+    });
 
+    async function getInspections(): Promise<InspectionResponse> {
+        const params = new URLSearchParams({
+            page: String(page),
+            size: String(size),
+        });
+
+        if (filters.grouped !== undefined) {
+            params.append('grouped', String(filters.grouped));
+        }
+
+        if (filters.icdRoots) {
+            filters.icdRoots.forEach(root => {
+                params.append('icdRoots', String(root));
+            });
+        }
+
+        const { data } = await axiosInstance.get(`/patient/${id}/inspections/?${params.toString()}`);
+        return data;
+    }
 
     const { data, isError, isPending } = useQuery({
         queryKey: ['patient-info', id],
@@ -43,18 +70,67 @@ const Patient = () => {
         retry: false
     })
 
-    const { inpsections, isErrorInspections, isPendingInpsections } = useQuery({
-        queryKey: ['patient-info-inpsections', id],
-        queryFn: () => getInpsectionsInfo(id as string),
+    const { data: inspectionsData, refetch } = useQuery({
+        queryKey: ['patient-info-inpsections', id, page, size],
+        queryFn: () => getInspections(),
         retry: false
     })
-    console.log(inpsections);
 
 
     const handleInspectionClick = () => {
         navigate('/inspection/create', {
             state: {
                 id: id
+            }
+        })
+    }
+
+    function handlePagClick(newPage: number) {
+        setSearchParams(prev => {
+            const params = Object.fromEntries(prev.entries());
+            return {
+                ...params,
+                page: String(newPage),
+                size: String(size)
+            }
+        })
+    }
+
+    const renderPagination = () => {
+        if (!inspectionsData?.pagination) return null;
+        const { current, count } = inspectionsData.pagination;
+
+        const items = [];
+        const start = Math.max(1, current - 2);
+        const end = Math.min(count, current + 2);
+
+        if (start > 1) items.push(<Pagination.Ellipsis />);
+
+        for (let i = start; i <= end; i++) {
+            items.push(
+                <Pagination.Item key={i} active={current === i} onClick={() => handlePagClick(i)}>
+                    {i}
+                </Pagination.Item>
+            );
+        }
+
+        if (end < count) items.push(<Pagination.Ellipsis />);
+
+        return (
+            <Pagination className="flex-wrap justify-content-center">
+                <Pagination.Prev onClick={() => handlePagClick(current - 1)} disabled={current === 1} />
+                {items}
+                <Pagination.Next onClick={() => handlePagClick(current + 1)} disabled={current === count} />
+            </Pagination>
+        );
+    }
+    function handlePageSizeChange(newSize: number) {
+        setSearchParams(prev => {
+            const params = Object.fromEntries(prev.entries());
+            return {
+                ...params,
+                page: String(page),
+                size: String(newSize)
             }
         })
     }
@@ -90,12 +166,12 @@ const Patient = () => {
                                             <div className='d-flex align-items-center pl-2 gap-2'>
                                                 <div>Мужской</div>
                                                 <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15 3C15 2.44772 15.4477 2 16 2H20C21.1046 2 22 2.89543 22 4V8C22 8.55229 21.5523 9 21 9C20.4477 9 20 8.55228 20 8V5.41288L15.4671 9.94579C15.4171 9.99582 15.363 10.0394 15.3061 10.0767C16.3674 11.4342 17 13.1432 17 15C17 19.4183 13.4183 23 9 23C4.58172 23 1 19.4183 1 15C1 10.5817 4.58172 7 9 7C10.8559 7 12.5642 7.63197 13.9214 8.69246C13.9587 8.63539 14.0024 8.58128 14.0525 8.53118L18.5836 4H16C15.4477 4 15 3.55228 15 3ZM9 20.9963C5.68831 20.9963 3.00365 18.3117 3.00365 15C3.00365 11.6883 5.68831 9.00365 9 9.00365C12.3117 9.00365 14.9963 11.6883 14.9963 15C14.9963 18.3117 12.3117 20.9963 9 20.9963Z" fill="#ffffff" />
+                                                    <path fillRule="evenodd" clipRule="evenodd" d="M15 3C15 2.44772 15.4477 2 16 2H20C21.1046 2 22 2.89543 22 4V8C22 8.55229 21.5523 9 21 9C20.4477 9 20 8.55228 20 8V5.41288L15.4671 9.94579C15.4171 9.99582 15.363 10.0394 15.3061 10.0767C16.3674 11.4342 17 13.1432 17 15C17 19.4183 13.4183 23 9 23C4.58172 23 1 19.4183 1 15C1 10.5817 4.58172 7 9 7C10.8559 7 12.5642 7.63197 13.9214 8.69246C13.9587 8.63539 14.0024 8.58128 14.0525 8.53118L18.5836 4H16C15.4477 4 15 3.55228 15 3ZM9 20.9963C5.68831 20.9963 3.00365 18.3117 3.00365 15C3.00365 11.6883 5.68831 9.00365 9 9.00365C12.3117 9.00365 14.9963 11.6883 14.9963 15C14.9963 18.3117 12.3117 20.9963 9 20.9963Z" fill="#ffffff" />
                                                 </svg>
                                             </div>) : (<div className="d-flex align-items-center">
                                                 <div>Женский</div>
                                                 <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M20 9C20 13.0803 16.9453 16.4471 12.9981 16.9383C12.9994 16.9587 13 16.9793 13 17V19H14C14.5523 19 15 19.4477 15 20C15 20.5523 14.5523 21 14 21H13V22C13 22.5523 12.5523 23 12 23C11.4477 23 11 22.5523 11 22V21H10C9.44772 21 9 20.5523 9 20C9 19.4477 9.44772 19 10 19H11V17C11 16.9793 11.0006 16.9587 11.0019 16.9383C7.05466 16.4471 4 13.0803 4 9C4 4.58172 7.58172 1 12 1C16.4183 1 20 4.58172 20 9ZM6.00365 9C6.00365 12.3117 8.68831 14.9963 12 14.9963C15.3117 14.9963 17.9963 12.3117 17.9963 9C17.9963 5.68831 15.3117 3.00365 12 3.00365C8.68831 3.00365 6.00365 5.68831 6.00365 9Z" fill="#ffffff" />
+                                                    <path fillRule="evenodd" clipRule="evenodd" d="M20 9C20 13.0803 16.9453 16.4471 12.9981 16.9383C12.9994 16.9587 13 16.9793 13 17V19H14C14.5523 19 15 19.4477 15 20C15 20.5523 14.5523 21 14 21H13V22C13 22.5523 12.5523 23 12 23C11.4477 23 11 22.5523 11 22V21H10C9.44772 21 9 20.5523 9 20C9 19.4477 9.44772 19 10 19H11V17C11 16.9793 11.0006 16.9587 11.0019 16.9383C7.05466 16.4471 4 13.0803 4 9C4 4.58172 7.58172 1 12 1C16.4183 1 20 4.58172 20 9ZM6.00365 9C6.00365 12.3117 8.68831 14.9963 12 14.9963C15.3117 14.9963 17.9963 12.3117 17.9963 9C17.9963 5.68831 15.3117 3.00365 12 3.00365C8.68831 3.00365 6.00365 5.68831 6.00365 9Z" fill="#ffffff" />
                                                 </svg>
                                             </div>)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</ListGroup.Item>
                                         <ListGroup.Item>Дата рождения — {data?.birthday ? (<Badge bg='secondary'>{formatDateForInput(data.birthday)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</ListGroup.Item>
@@ -115,25 +191,90 @@ const Patient = () => {
                                 </Card.Body>
 
                             </Card>
+                            <Card className="mt-3 shadow-sm">
+                                <Card.Header>
+                                    <b>Фильтры и сортировка</b>
+                                </Card.Header>
+
+                                <Card.Body>
+                                    <Row className="g-4">
+                                        <Col md={6}>
+                                            <Form.Group>
+                                                <Form.Label>МКБ-10</Form.Label>
+                                                <Form.Select>
+                                                    <option value="">Выберите диагноз</option>
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={6} className="d-flex align-items-end">
+
+                                        </Col>
+
+                                        <Col md={6}>
+                                            <Form.Group>
+                                                <Form.Label>Пациентов на странице</Form.Label>
+                                                <Form.Select
+                                                    onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                                >
+                                                    <option value="5">5</option>
+                                                    <option value="10">10</option>
+                                                    <option value="15">15</option>
+                                                    <option value="25">25</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100">100</option>
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+
+
+                                        <Col md={6} className="d-flex align-items-end justify-content-end">
+                                            <Button className="px-4">
+                                                Поиск
+                                            </Button>
+                                        </Col>
+
+                                    </Row>
+                                </Card.Body>
+                            </Card>
                             <Container>
                                 <Row>
                                     <>
-                                        <Col xs={12} lg={6}>
-                                            <Card className='mt-3 patient-card'>
-                                                <Card.Header >Пациент: <b>{patient?.name ? (<Badge style={{
-                                                    display: "inline-block",
-                                                    maxWidth: "80%",
-                                                    overflow: "hidden",
-                                                    whiteSpace: "nowrap",
-                                                    textOverflow: "ellipsis",
-                                                    verticalAlign: "middle"
-                                                }} bg='secondary'>{patient.name}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)}</b></Card.Header>
-                                                <ListGroup>
-                                                    <ListGroup.Item>Пол — <b>{patient?.gender ? (<Badge bg='secondary'>{patient.gender}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
-                                                    <ListGroup.Item>Дата рождения — <b>{patient?.birthday ? (<Badge bg='secondary'>{formatDateForInput(patient?.birthday)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
-                                                </ListGroup>
-                                            </Card>
-                                        </Col >
+                                        {inspectionsData?.inspections.map((inspection) => (
+                                            <Col xs={12} lg={6} key={inspection?.id} >
+                                                <Card className='mt-3 patient-card' bg={inspection.conclusion == 'Death' ? "danger" : ''}>
+                                                    <Card.Header ><b>{inspection.date ? (<Badge style={{
+                                                        display: "inline-block",
+                                                        maxWidth: "80%",
+                                                        overflow: "hidden",
+                                                        whiteSpace: "nowrap",
+                                                        textOverflow: "ellipsis",
+                                                        verticalAlign: "middle"
+
+                                                    }} bg='secondary'>{formatDateForInput(inspection.date)}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)} <span className='m-3'>Амбулаторный осмотр</span></b> </Card.Header>
+                                                    <Card.Body>
+                                                        <ListGroup>
+                                                            <ListGroup.Item>Заключение — <b>{inspection?.conclusion == 'Death' ? 'Смерть' : (inspection?.conclusion == 'Disease' ? 'Болезнь' : 'Выздоровление')}</b></ListGroup.Item>
+                                                            <ListGroup.Item>Основной диагноз — <b>{inspection?.diagnosis.name} ({inspection?.diagnosis.code})</b></ListGroup.Item>
+                                                            <ListGroup.Item>Медицинский работник — <b>{inspection?.doctor}</b></ListGroup.Item>
+                                                        </ListGroup>
+                                                        {inspection?.conclusion == 'Death' ? (
+                                                            <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
+                                                                <Button variant='light' disabled={true}>Добавить осмотр невозможно</Button>
+                                                                <Button variant='light'>Детали осмотра</Button>
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
+                                                                <Button variant='outline-primary' disabled={inspection?.hasNested == false}>Добавить осмотр</Button>
+                                                                <Button variant='outline-primary'>Детали осмотра</Button>
+                                                            </div>
+                                                        )}
+
+                                                    </Card.Body>
+
+                                                </Card>
+                                            </Col >
+                                        ))}
+
                                     </>
 
 
@@ -148,7 +289,15 @@ const Patient = () => {
 
                                 </div>
                             </Container>
-
+                            <div className="d-flex justify-content-center mt-4" style={{
+                                position: 'sticky',
+                                bottom: -20,
+                                zIndex: 1000,
+                                background: 'white',
+                                padding: '1rem 0'
+                            }}>
+                                {renderPagination()}
+                            </div>
                         </Container>
 
                     </>

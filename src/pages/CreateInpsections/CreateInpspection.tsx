@@ -109,7 +109,7 @@ const CreateInpspection = () => {
     function handleAddDiag() {
         if (selectedDiag == null) {
             alert('Не выбран диагноз');
-            return
+            return;
         }
 
         selectedDiag.description = diadDescriptionRef.current?.value;
@@ -170,7 +170,12 @@ const CreateInpspection = () => {
 
     const handleSendForm = (data: CreateInspectionData) => {
         console.log(data);
-        mutation.mutate(data);
+
+        const payload: CreateInspectionData = {
+            ...data,
+            previousInspectionId: data.previousInspectionId || undefined
+        }
+        mutation.mutate(payload);
     }
     return (
         <MainLayout>
@@ -211,7 +216,7 @@ const CreateInpspection = () => {
                                                                     onChange={(val: number) => {
                                                                         setRepeatInpsection(val === 2); reset({
                                                                             ...getValues(),
-                                                                            previousInspectionId: 'k'
+                                                                            previousInspectionId: ""
                                                                         })
                                                                     }}
                                                                     className="w-100">
@@ -232,7 +237,7 @@ const CreateInpspection = () => {
                                                                         required={repeatInpsection}
                                                                         {...register('previousInspectionId')}
                                                                         isInvalid={!!errors.previousInspectionId}>
-                                                                        <option value='k'>
+                                                                        <option value=''>
                                                                             {isLoading ? 'Загрузка...' : 'Выберите осмотр'}
                                                                         </option>
                                                                         {dataInpsections?.inspections.map((insp: InpsectionPreviewModel) => (
