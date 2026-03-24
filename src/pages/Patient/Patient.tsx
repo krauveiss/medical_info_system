@@ -3,9 +3,10 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import MainLayout from '../../components/MainLayout/MainLayout';
 import axiosInstance from '../../shared/api/axiosConfig';
 import { useQuery } from '@tanstack/react-query';
-import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
+import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Dropdown, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
 import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
+import type { Icd10SerachModel } from '../../shared/api/Models/Icd10SearchModel';
 
 
 
@@ -23,22 +24,33 @@ type InspectionResponse = {
     }
 }
 
+
 async function getPatientInfo(id: string): Promise<PatientCard> {
     const { data } = await axiosInstance.get(`/patient/${id}`)
     return data;
 }
 
+async function getIcdRootsList(): Promise<Icd10SerachModel[]> {
+    const { data } = await axiosInstance.get('/dictionary/icd10/roots');
+    return data;
+}
 
 
 const Patient = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const page = Number(searchParams.get('page') ?? 1);
     const size = Number(searchParams.get('size') ?? 5);
-    const grouped = Boolean(searchParams.get('grouped') ?? 0);
-    const icd = Array(searchParams.get('icdRoots') ?? 1);
+    const grouped = searchParams.get('grouped') === 'true';
+    const icd = searchParams.getAll('icdRoots') ?? [];
     const { id } = useParams();
     const navigate = useNavigate();
 
+    const { data: icdR } = useQuery({
+        queryKey: ['icdRootsList'],
+        queryFn: getIcdRootsList
+    })
+
+    console.log(icdR)
     const [filters, setFilters] = useState({
         grouped: grouped,
         icdRoots: icd,
@@ -201,13 +213,57 @@ const Patient = () => {
                                         <Col md={6}>
                                             <Form.Group>
                                                 <Form.Label>МКБ-10</Form.Label>
-                                                <Form.Select>
-                                                    <option value="">Выберите диагноз</option>
-                                                </Form.Select>
+
+                                                <Dropdown>
+                                                    <Dropdown.Toggle className="w-100 text-start">
+                                                        {filters.icdRoots?.length
+                                                            ? `Выбрано: ${filters.icdRoots.length}`
+                                                            : 'Выберите диагнозы'}
+                                                    </Dropdown.Toggle>
+
+                                                    <Dropdown.Menu
+                                                        className="w-100 p-2"
+                                                        style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                                                        {icdR?.map((root) => (
+                                                            <Form.Check
+                                                                key={root.id}
+                                                                type="checkbox"
+                                                                label={`${root.code} - ${root.name}`}
+                                                                checked={filters.icdRoots?.includes(root.id) || false}
+                                                                onChange={(e) => {
+                                                                    const updated = e.target.checked ?
+                                                                        [...(filters.icdRoots || []), root.id] : filters.icdRoots?.filter(id => id !== root.id);
+
+                                                                    setFilters((prev) => ({
+                                                                        ...prev,
+                                                                        icdRoots: updated
+                                                                    }))
+
+                                                                }}
+                                                                className="mb-2"
+                                                            />
+                                                        ))}
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                                <Button onClick={() => console.log(filters.icdRoots)}>
+
+                                                </Button>
                                             </Form.Group>
                                         </Col>
                                         <Col md={6} className="d-flex align-items-end">
-
+                                            <Form.Group>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    label="Сгруппировать по повторным"
+                                                    checked={filters.grouped}
+                                                    onChange={(e) => {
+                                                        setFilters(prev => ({
+                                                            ...prev,
+                                                            grouped: e.target.checked
+                                                        }))
+                                                    }}
+                                                />
+                                            </Form.Group>
                                         </Col>
 
                                         <Col md={6}>
@@ -228,7 +284,7 @@ const Patient = () => {
 
 
                                         <Col md={6} className="d-flex align-items-end justify-content-end">
-                                            <Button className="px-4">
+                                            <Button className="px-4" onClick={() => refetch()}>
                                                 Поиск
                                             </Button>
                                         </Col>
