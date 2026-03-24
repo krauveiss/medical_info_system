@@ -50,7 +50,7 @@ const Patient = () => {
         queryFn: getIcdRootsList
     })
 
-    console.log(icdR)
+
     const [filters, setFilters] = useState({
         grouped: grouped,
         icdRoots: icd,
@@ -92,7 +92,8 @@ const Patient = () => {
     const handleInspectionClick = () => {
         navigate('/inspection/create', {
             state: {
-                id: id
+                id: id,
+                prev: null
             }
         })
     }
@@ -146,6 +147,7 @@ const Patient = () => {
             }
         })
     }
+    console.log(inspectionsData);
     return (
         <MainLayout>
             <div>
@@ -320,7 +322,14 @@ const Patient = () => {
                                                             </div>
                                                         ) : (
                                                             <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
-                                                                <Button variant='outline-primary' disabled={inspection?.hasNested == false}>Добавить осмотр</Button>
+                                                                <Button variant='outline-primary' disabled={inspection?.hasNested == true} onClick={() => {
+                                                                    navigate('/inspection/create', {
+                                                                        state: {
+                                                                            id: id,
+                                                                            prev: inspection.id
+                                                                        }
+                                                                    })
+                                                                }}>Добавить осмотр</Button>
                                                                 <Button variant='outline-primary'>Детали осмотра</Button>
                                                             </div>
                                                         )}

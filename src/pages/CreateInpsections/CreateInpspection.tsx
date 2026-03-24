@@ -7,7 +7,7 @@ import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, 
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
 import type { Speciality } from '../../shared/api/Models/Speciality';
 import axios, { all } from 'axios';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel';
 import type z from 'zod';
@@ -85,6 +85,7 @@ const CreateInpspection = () => {
 
     const location = useLocation();
     const patientId = String(location.state.id);
+    const prevInsp = location.state?.prev;
 
     async function createInspection(data: CreateInspectionData) {
         return axiosInstance.post(`https://mis-api.kreosoft.space/api/patient/${patientId}/inspections`, data)
@@ -173,10 +174,24 @@ const CreateInpspection = () => {
 
         const payload: CreateInspectionData = {
             ...data,
-            previousInspectionId: data.previousInspectionId || undefined
+            previousInspectionId: data.previousInspectionId || undefined,
+            nextVisitDate: data.nextVisitDate || undefined,
+            deathDate: data.deathDate || undefined
         }
         mutation.mutate(payload);
     }
+    useEffect(() => {
+          console.log(prevInsp, repeatInpsection)
+        if (prevInsp && dataInpsections) {
+            setRepeatInpsection(true);
+
+            reset({
+                ...getValues(),
+                previousInspectionId: prevInsp
+            });
+            console.log(prevInsp, repeatInpsection)
+        }
+    }, [prevInsp, dataInpsections]);
     return (
         <MainLayout>
             <div>
@@ -235,6 +250,7 @@ const CreateInpspection = () => {
                                                                     <Form.Select
                                                                         disabled={!repeatInpsection}
                                                                         required={repeatInpsection}
+                                                                        value={watch('previousInspectionId') || ''}
                                                                         {...register('previousInspectionId')}
                                                                         isInvalid={!!errors.previousInspectionId}>
                                                                         <option value=''>
