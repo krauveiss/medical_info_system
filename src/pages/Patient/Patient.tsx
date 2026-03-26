@@ -7,6 +7,7 @@ import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Drop
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
 import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { Icd10SerachModel } from '../../shared/api/Models/Icd10SearchModel';
+import InspectionItem from '../../components/Inspection/InspectionItem';
 
 
 
@@ -327,56 +328,15 @@ const Patient = () => {
                             </Card>
                             <Container>
                                 <Row>
-                                    <>
-                                        {datas.map((inspection) => (
-                                            <Col xs={12} lg={6} key={inspection?.id} >
-                                                <Card className='mt-3 patient-card' bg={inspection.conclusion == 'Death' ? "danger" : ''}>
-                                                    <Card.Header ><b>{inspection.date ? (<Badge style={{
-                                                        display: "inline-block",
-                                                        maxWidth: "80%",
-                                                        overflow: "hidden",
-                                                        whiteSpace: "nowrap",
-                                                        textOverflow: "ellipsis",
-                                                        verticalAlign: "middle"
-
-                                                    }} bg='secondary'>{formatDateForInput(inspection.date)}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)} <span className='m-3'>Амбулаторный осмотр</span></b> </Card.Header>
-                                                    <Card.Body>
-                                                        <ListGroup>
-                                                            <ListGroup.Item>Заключение — <b>{inspection?.conclusion == 'Death' ? 'Смерть' : (inspection?.conclusion == 'Disease' ? 'Болезнь' : 'Выздоровление')}</b></ListGroup.Item>
-                                                            <ListGroup.Item>Основной диагноз — <b>{inspection?.diagnosis.name} ({inspection?.diagnosis.code})</b></ListGroup.Item>
-                                                            <ListGroup.Item>Медицинский работник — <b>{inspection?.doctor}</b></ListGroup.Item>
-                                                        </ListGroup>
-                                                        {inspection?.conclusion == 'Death' ? (
-                                                            <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
-                                                                <Button variant='light' disabled={true}>Добавить осмотр невозможно</Button>
-                                                                <Button variant='light'>Детали осмотра</Button>
-                                                            </div>
-                                                        ) : (
-                                                            <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
-                                                                <Button variant='outline-primary' disabled={inspection?.hasNested == true} onClick={() => {
-                                                                    navigate('/inspection/create', {
-                                                                        state: {
-                                                                            id: id,
-                                                                            prev: inspection.id
-                                                                        }
-                                                                    })
-                                                                }}>Добавить осмотр</Button>
-                                                                <Button variant='outline-primary'>Детали осмотра</Button>
-                                                                <div>{inspection.children.id}
-                                                                </div>
-                                                            </div>
-
-                                                        )}
-
-                                                    </Card.Body>
-
-                                                </Card>
-                                            </Col >
-                                        ))}
-
-                                    </>
-
-
+                                    {datas.map((inspection) => (
+                                        <Col xs={12} lg={6} key={inspection.id}>
+                                            <InspectionItem
+                                                inspection={inspection}
+                                                id={id}
+                                                navigate={navigate}
+                                            />
+                                        </Col>
+                                    ))}
                                 </Row>
                                 <div className="d-flex justify-content-center mt-4" style={{
                                     position: 'sticky',
