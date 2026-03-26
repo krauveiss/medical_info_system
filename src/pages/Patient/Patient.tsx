@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { Children, useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import MainLayout from '../../components/MainLayout/MainLayout';
 import axiosInstance from '../../shared/api/axiosConfig';
 import { useQuery } from '@tanstack/react-query';
 import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Dropdown, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
 import type { PatientCard } from '../../shared/api/Models/PatientCard';
-import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
+import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { Icd10SerachModel } from '../../shared/api/Models/Icd10SearchModel';
 
 
@@ -16,7 +16,7 @@ const formatDateForInput = (isoDate?: string) => {
 };
 
 type InspectionResponse = {
-    inspections: InpsectionPreviewModel[],
+    inspections: InspectionPreviewModel[],
     pagination: {
         size: number,
         count: number,
@@ -148,6 +148,37 @@ const Patient = () => {
         })
     }
     console.log(inspectionsData);
+
+
+    function buildTree(inspections: InspectionPreviewModel[] | undefined) {
+        const map = new Map();
+
+        if (!inspections || inspections.length === 0) {
+            return [];
+        }
+
+        inspections.forEach(item => {
+            map.set(item.id, { ...item, children: [] })
+        })
+        const roots = []
+
+        inspections.forEach(element => {
+            if (element.previousId) {
+                const parent = map.get(element.previousId)
+                if (parent) {
+                    parent.children = map.get(element.id)
+                }
+            }
+            else {
+                roots.push(map.get(element.id));
+            }
+        });
+        return roots;
+    }
+
+
+    const datas = buildTree(inspectionsData?.inspections);
+
     return (
         <MainLayout>
             <div>
@@ -297,7 +328,7 @@ const Patient = () => {
                             <Container>
                                 <Row>
                                     <>
-                                        {inspectionsData?.inspections.map((inspection) => (
+                                        {datas.map((inspection) => (
                                             <Col xs={12} lg={6} key={inspection?.id} >
                                                 <Card className='mt-3 patient-card' bg={inspection.conclusion == 'Death' ? "danger" : ''}>
                                                     <Card.Header ><b>{inspection.date ? (<Badge style={{
@@ -331,7 +362,10 @@ const Patient = () => {
                                                                     })
                                                                 }}>Добавить осмотр</Button>
                                                                 <Button variant='outline-primary'>Детали осмотра</Button>
+                                                                <div>{inspection.children.id}
+                                                                </div>
                                                             </div>
+
                                                         )}
 
                                                     </Card.Body>

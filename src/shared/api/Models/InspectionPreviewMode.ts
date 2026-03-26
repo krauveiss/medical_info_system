@@ -1,7 +1,7 @@
 import type { Conclusion } from "./Conclusion";
 import type { DiagnosisModel } from "./DiagnosisModel";
 
-export type InpsectionPreviewModel = {
+export type InspectionPreviewModel = {
     id: string,
     createTime: string,
     previousId?: string,

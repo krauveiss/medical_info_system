@@ -163,7 +163,7 @@ const CreateInpspection = () => {
 
     const mutation = useMutation({
         mutationFn: createInspection,
-        onSuccess: () => { alert("Success register"); },
+        onSuccess: () => { navigate(`/patient/${patientId}`) },
         onError: (error: any) => {
             alert(error.response?.data?.message);
         }
@@ -181,7 +181,7 @@ const CreateInpspection = () => {
         mutation.mutate(payload);
     }
     useEffect(() => {
-          console.log(prevInsp, repeatInpsection)
+        console.log(prevInsp, repeatInpsection)
         if (prevInsp && dataInpsections) {
             setRepeatInpsection(true);
 
