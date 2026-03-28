@@ -16,7 +16,6 @@ const formatDateForInput = (isoDate?: string) => {
 const InspectionItem = ({ inspection, id, navigate }: Props) => {
 
     const [open, setOpen] = useState(false);
-    console.log(inspection.children.length);
 
     return (
         <Card className='mt-3 patient-card' bg={inspection.conclusion == 'Death' ? "danger" : ''}>
