@@ -361,7 +361,9 @@ const Patient = () => {
                                                     {inspection?.conclusion == 'Death' ? (
                                                         <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
                                                             <Button variant='light' disabled={true}>Добавить осмотр невозможно</Button>
-                                                            <Button variant='light'>Детали осмотра</Button>
+                                                            <Button variant='light' onClick={() => {
+                                                                navigate(`/inspection/${inspection.id}`)
+                                                            }}>Детали осмотра</Button>
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
@@ -373,7 +375,9 @@ const Patient = () => {
                                                                     }
                                                                 })
                                                             }}>Добавить осмотр</Button>
-                                                            <Button variant='outline-primary'>Детали осмотра</Button>
+                                                            <Button variant='outline-primary' onClick={() => {
+                                                                navigate(`/inspection/${inspection.id}`)
+                                                            }}>Детали осмотра</Button>
 
                                                         </div>
 

@@ -6,6 +6,7 @@ import CheckAuth from "../shared/api/CheckAuth";
 import Patients from "../pages/Patients/Patients";
 import Patient from "../pages/Patient/Patient";
 import CreateInpspection from "../pages/CreateInpsections/CreateInpspection";
+import InspectionDetails from "../pages/InspectionDetails/InspectionDetails";
 
 const router = createBrowserRouter([
     {
@@ -34,6 +35,12 @@ const router = createBrowserRouter([
         path: '/inspection/create',
         element: <CheckAuth><CreateInpspection></CreateInpspection></CheckAuth>
     }
+    ,
+    {
+        path: '/inspection/:id',
+        element: <CheckAuth><InspectionDetails></InspectionDetails></CheckAuth>
+    }
+
 ])
 
 export const AppRouter = () => <RouterProvider router={router}></RouterProvider>
