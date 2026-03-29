@@ -8,7 +8,7 @@ export type InspectionModel = {
     id: string,
     createTime: string,
     date?: string,
-    anemnesis?: string,
+    anamnesis?: string,
     complaints?: string,
     treatment?: string,
     conclusion?: Conclusion,
@@ -19,7 +19,7 @@ export type InspectionModel = {
     patient?: PatientCard,
     doctor?: DoctorModel,
     diagnoses?: DiagnosisModel[],
-    consultations?: InspectionConsultationModel
+    consultations?: InspectionConsultationModel[]
 
 
 };
