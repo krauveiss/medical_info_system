@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { act } from 'react'
 import MainLayout from '../../components/MainLayout/MainLayout'
 import { useParams } from 'react-router-dom'
 import axiosInstance from '../../shared/api/axiosConfig'
 import type { InspectionModel } from '../../shared/api/Models/InspectionModel'
 import { useQuery } from '@tanstack/react-query'
 import { Badge, Button, Card, Col, Container, Placeholder, Row, Spinner, Toast } from 'react-bootstrap'
+import type { InspectionCommentModel } from '../../shared/api/Models/InspectionCommentModel'
+import type { CommentModel } from '../../shared/api/Models/CommentModel'
+import type { ConsultationModel } from '../../shared/api/Models/ConsultationModel'
+import { ConsultationItem } from '../../components/Inspection/ConsultationItem'
 
 
 async function getInspections(userId: string): Promise<InspectionModel> {
@@ -25,8 +29,6 @@ const formatDateForInput = (isoDate?: string) => {
 
 
 
-
-
 const InspectionDetails = () => {
     const { id } = useParams();
 
@@ -36,6 +38,9 @@ const InspectionDetails = () => {
 
     })
     console.log(data);
+
+
+
 
     return (
         <MainLayout>
@@ -125,17 +130,11 @@ const InspectionDetails = () => {
                                     {data?.consultations?.length == 0 ? (
                                         <Card.Text><b>Не проводились</b></Card.Text>
                                     ) : <></>}
-                                    {data?.consultations?.length > 0 && data?.consultations?.map((consult, index) =>
+                                    {data?.consultations?.length && data?.consultations?.length > 0 && data?.consultations?.map((consult, index) =>
                                     (
-                                        <Col lg="auto">
-                                            <Card className='d-flex justify-content-center align-items-center' key={consult.id}>
-                                                <Card.Header>
-                                                    <Badge>{index + 1}</Badge>  <Badge bg='secondary'>{consult.speciality?.name}</Badge>  <Badge bg='secondary'>{consult.rootComment?.author?.name}</Badge> <Badge bg='secondary'>Дата: {formatDateForInput(consult.createTime)}</Badge>
-                                                </Card.Header>
-                                                <Card.Body>
-                                                    <Button>Загрузить комментарии</Button>
-                                                </Card.Body>
-                                            </Card>
+                                        <Col lg={4}>
+                                            <ConsultationItem consult={consult}></ConsultationItem>
+
 
                                         </Col>
 
