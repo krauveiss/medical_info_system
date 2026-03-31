@@ -22,6 +22,17 @@ async function addConsultComment(consult: string, parentId: string, content: str
 }
 
 
+async function editComment(commentId: string, content: string) {
+    const { data } = await axiosInstance.put(`consultation/comment/${commentId}`,
+        {
+            content: content,
+        }
+    );
+    return data;
+}
+
+
+
 const formatDateForInputInsp = (isoDate?: string) => {
     if (!isoDate) return '';
     let k = isoDate.split('T');
@@ -49,6 +60,12 @@ type AddCommentParams = {
     content: string
 }
 
+type EditCommentParams = {
+    commentId: string
+    content: string
+}
+
+
 const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
     const renderTooltip = (props: any) => (
         <Tooltip id="button-tooltip" {...props}>
@@ -67,17 +84,26 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
         onSuccess: () => refetchFn(),
         onError: (e) => console.log(e)
     })
+
+    const mutationEdit = useMutation({
+        mutationFn: ({ commentId, content }: EditCommentParams) =>
+            editComment(commentId, content),
+        onSuccess: () => refetchFn(),
+        onError: (e) => console.log(e)
+    })
     const { data } = useQuery({
         queryKey: ['doctor-info'],
         queryFn: getDoctorInfo,
     })
     const [isReplyOpen, setIsReplyOpen] = useState(false)
+    const [isEditOpen, setIsEditOpen] = useState(false)
     const [replyText, setReplyText] = useState('')
+    const [editText, setEditText] = useState('')
 
     return (
         <div style={{ paddingLeft: mg + 10 }}>
             <Card >
-                <Card.Header>{comment.author == data?.name ? 'Вы' : comment.author}</Card.Header>
+                <Card.Header>{comment.author == data?.name ? `Вы` : comment.author}</Card.Header>
                 <Card.Body>
                     {comment.content}
                 </Card.Body>
@@ -101,12 +127,17 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
                             {comment.children?.length && comment.children?.length > 0 ? (
                                 <Button variant="link" onClick={() => setOpen(!open)}> {open ? 'Скрыть ответы' : `Показать ответы (${comment.children.length})`} </Button>
                             ) : (<div></div>)}
-                            <Button variant="link" onClick={() => setIsReplyOpen(prev => !prev)}>
+                            <Button variant="link" onClick={() => { setIsReplyOpen(prev => !prev); setIsEditOpen(false) }}>
                                 Ответить
                             </Button>
+                            {comment.authorId == data?.id && (
+                                <Button variant="link" onClick={() => { setIsEditOpen(prev => !prev); setIsReplyOpen(false); }}>
+                                    Редактировать
+                                </Button>
+                            )}
                         </div>
                         {isReplyOpen && (
-                            <div>
+                            <div className='d-flex justify-content-center flex-column'>
                                 <hr />
                                 <Form.Control
                                     as="textarea"
@@ -127,6 +158,29 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
                                             });
                                     }}>
                                     Отправить
+                                </Button>
+                            </div>
+                        )}
+                        {isEditOpen && (
+                            <div className='d-flex justify-content-center flex-column'>
+                                <hr />
+                                <Form.Control
+                                    defaultValue={comment.content}
+                                    as="textarea"
+                                    rows={2}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                    placeholder="Введите ответ"
+                                    className='mt-1 mb-3'
+                                />
+                                <Button
+                                    onClick={() => {
+                                        setIsEditOpen(false),
+                                            mutationEdit.mutate({
+                                                commentId: comment.id,
+                                                content: editText
+                                            });
+                                    }}>
+                                    Редактировать
                                 </Button>
                             </div>
                         )}
