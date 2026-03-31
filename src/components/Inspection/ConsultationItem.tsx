@@ -76,11 +76,11 @@ export const ConsultationItem = ({ consult }: Props) => {
             <Card.Header>
                 <Badge bg='secondary'>{consult.speciality?.name}</Badge>  <Badge bg='secondary'>{consult.rootComment?.author?.name}</Badge> <Badge bg='secondary'>Дата: {formatDateForInput(consult.createTime)}</Badge>
             </Card.Header>
-            <Card.Body style={{ width: "100%" }} className='d-flex justify-content-center'>
+            <Card.Body style={{ width: "100%" }} className='d-flex justify-content-center flex-column gap-3'>
                 <Button className={buttonShow ? "" : "d-none"} onClick={() => { refetch(); setButtonShow(false) }}>Загрузить комментарии</Button>
                 <Spinner animation="border" variant="primary" className={isLoading ? "" : "d-none"}></Spinner>
                 {comments?.map((comment) => (
-                    <Comment comment={comment} key={comment.id}></Comment>
+                    <Comment comment={comment} key={comment.id} consultId={consult.id} mg={-10} refetchFn={refetch}></Comment>
                 ))}
             </Card.Body>
         </Card >
