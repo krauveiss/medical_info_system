@@ -124,10 +124,6 @@ const CreateInpspection = () => {
         setSelectedDiag(null);
         setValue('');
         diadDescriptionRef.current.value = "";
-
-
-
-
     }
 
 
@@ -170,7 +166,6 @@ const CreateInpspection = () => {
     });
 
     const handleSendForm = (data: CreateInspectionData) => {
-        console.log(data);
 
         const payload: CreateInspectionData = {
             ...data,
@@ -181,7 +176,6 @@ const CreateInpspection = () => {
         mutation.mutate(payload);
     }
     useEffect(() => {
-        console.log(prevInsp, repeatInpsection)
         if (prevInsp && dataInpsections) {
             setRepeatInpsection(true);
 
@@ -189,7 +183,6 @@ const CreateInpspection = () => {
                 ...getValues(),
                 previousInspectionId: prevInsp
             });
-            console.log(prevInsp, repeatInpsection)
         }
     }, [prevInsp, dataInpsections]);
     return (
@@ -315,7 +308,6 @@ const CreateInpspection = () => {
                                                                         else {
                                                                             remove();
                                                                         }
-                                                                        console.log(watch())
                                                                     }}
                                                                     className='mt-2'
                                                                 />
@@ -499,7 +491,6 @@ const CreateInpspection = () => {
                                                 <div className='d-flex justify-content-center mt-3 gap-3'>
                                                     <Button type='submit'>Сохранить осмотр</Button>
                                                     <Button variant="secondary" onClick={() => navigate(`/patient/${patientId}`)}>Отмена</Button>
-                                                    <Button variant="secondary" onClick={() => console.log(watch())}>test</Button>
                                                 </div>
 
                                             </Form>

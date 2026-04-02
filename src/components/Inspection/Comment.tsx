@@ -82,14 +82,14 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
         mutationFn: ({ consultId, parentId, content }: AddCommentParams) =>
             addConsultComment(consultId, parentId, content),
         onSuccess: () => refetchFn(),
-        onError: (e) => console.log(e)
+        onError: (e) => alert(e.response.data.message)
     })
 
     const mutationEdit = useMutation({
         mutationFn: ({ commentId, content }: EditCommentParams) =>
             editComment(commentId, content),
         onSuccess: () => refetchFn(),
-        onError: (e) => console.log(e)
+        onError: (e) => alert(e.message)
     })
     const { data } = useQuery({
         queryKey: ['doctor-info'],

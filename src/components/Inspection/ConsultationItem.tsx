@@ -70,7 +70,6 @@ export const ConsultationItem = ({ consult }: Props) => {
     })
 
     const comments: CommentTreeItem[] = buildCommentTree(data?.comments);
-    console.log(comments)
     return (
         <Card className='d-flex justify-content-center align-items-center' key={consult.id}>
             <Card.Header>
