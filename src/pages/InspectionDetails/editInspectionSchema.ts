@@ -11,6 +11,7 @@ export const editInspectionSchema = z.object({
     diagnoses: z.array(z.object({
         icdDiagnosisId: z.string(),
         description: z.string(),
+        name: z.string().optional(),
         type: z.enum(['Main', 'Concomitant', 'Complication']),
     }))
 }).superRefine((data, ctx) => {

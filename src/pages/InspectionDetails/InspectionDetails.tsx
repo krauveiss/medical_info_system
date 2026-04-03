@@ -26,6 +26,7 @@ type DiagResponse = {
 
 
 
+
 async function getDoctorInfo(): Promise<DoctorModel> {
     const { data } = await axiosInstance.get('/doctor/profile');
     return data;
@@ -36,6 +37,7 @@ async function getDiags(request: string): Promise<DiagResponse> {
     const { data } = await axiosInstance.get(`https://mis-api.kreosoft.space/api/dictionary/icd10?request=${request}`);
     return data;
 }
+
 
 
 
@@ -59,6 +61,9 @@ const formatDateForInput = (isoDate?: string) => {
 
 
 
+async function getDiagIcdId() {
+
+}
 const InspectionDetails = () => {
     type CreateInspectionData = z.infer<typeof editInspectionSchema>;
     const { register, handleSubmit, formState: { errors }, reset, control, watch } = useForm<CreateInspectionData>({
@@ -67,13 +72,37 @@ const InspectionDetails = () => {
         }
     });
 
+
     const { id } = useParams();
 
-    function editInspection(data: CreateInspectionData, inspectionId: string) {
-        return axiosInstance.put(`/inspection/${inspectionId}`, data)
+    async function editInspection(data: CreateInspectionData, inspectionId: string) {
+        const diagnosesWithIds = await Promise.all(
+            (data.diagnoses).map(async (diagnosis) => {
+
+                const searchResult = await axiosInstance.get(
+                    `https://mis-api.kreosoft.space/api/dictionary/icd10?request=${diagnosis.name}`
+                );
+
+
+                const exactMatch = searchResult.data.records.find(
+                    (item: any) => item.name.toLowerCase() === diagnosis.name.toLowerCase()
+                );
+
+                return {
+                    ...diagnosis,
+                    icdDiagnosisId: exactMatch?.id || null
+                };
+            })
+        );
+
+        return axiosInstance.put(`/inspection/${inspectionId}`, {
+            ...data,
+            diagnoses: diagnosesWithIds,
+            deathDate: data.deathDate || undefined
+        });
     }
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, refetch } = useQuery({
         queryKey: ['inspection', id],
         queryFn: () => getInspections(id as string),
 
@@ -83,6 +112,8 @@ const InspectionDetails = () => {
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+
+    const didInit = useRef(false);
 
 
 
@@ -107,7 +138,8 @@ const InspectionDetails = () => {
 
 
     useEffect(() => {
-        if (data) {
+
+        if (data && !didInit.current) {
             reset({
                 complaints: data.complaints,
                 anamnesis: data.anamnesis || undefined,
@@ -123,6 +155,7 @@ const InspectionDetails = () => {
                 deathDate: data.deathDate || undefined
 
             })
+            didInit.current = true;
 
         }
     }, [data, reset]);
@@ -139,17 +172,23 @@ const InspectionDetails = () => {
 
     const mutation = useMutation({
         mutationFn: (data: CreateInspectionData) => editInspection(data, String(id)),
-        onSuccess: () => console.log("Успешно обновлено"),
-        onError: (e) => console.log(e.response.data?.message)
+        onSuccess: () => {
+            alert("Успешно обновлено!"); handleClose(); refetch()
+        },
+        onError: (e) => console.log(e)
 
     })
 
 
     const submitForm = (data: CreateInspectionData) => {
-        console.log(data);
+        console.log('data: ', data)
+        console.log('fields: ', fields)
+
         mutation.mutate(data);
     }
 
+
+    console.log('data on load: ', data);
     const diadDescriptionRef = useRef<HTMLTextAreaElement>(null);
     function handleAddDiag() {
         if (selectedDiag == null) {
@@ -172,7 +211,6 @@ const InspectionDetails = () => {
     }
 
     const conclType = watch('conclusion');
-    console.log(data)
     return (
         <MainLayout>
 
@@ -281,9 +319,11 @@ const InspectionDetails = () => {
                                     <Button className='mt-4' onClick={() => handleAddDiag()} variant="outline-primary">Добавить диагноз</Button>
                                 </div>
                             </Card.Body>
-                            <Form.Control.Feedback type="invalid">
-                                {errors?.diagnoses?.message}
-                            </Form.Control.Feedback>
+                            {errors?.diagnoses?.root && (
+                                <div className="text-danger mt-2">
+                                    {errors.diagnoses.root.message}
+                                </div>
+                            )}
 
                         </Card>
                         <Card className='mt-3' style={{ width: '100%' }}>
