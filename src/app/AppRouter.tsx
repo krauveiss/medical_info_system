@@ -8,6 +8,7 @@ import Patient from "../pages/Patient/Patient";
 import CreateInpspection from "../pages/CreateInpsections/CreateInpspection";
 import InspectionDetails from "../pages/InspectionDetails/InspectionDetails";
 import Consultations from "../pages/Consultation/Consultations";
+import Reports from "../pages/Reports/Reports";
 
 const router = createBrowserRouter([
     {
@@ -45,6 +46,11 @@ const router = createBrowserRouter([
     {
         path: '/consultations',
         element: <CheckAuth><Consultations></Consultations></CheckAuth>
+    }
+    ,
+    {
+        path: '/reports',
+        element: <CheckAuth><Reports></Reports></CheckAuth>
     }
 
 ])

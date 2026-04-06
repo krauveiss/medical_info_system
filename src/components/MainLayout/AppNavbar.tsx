@@ -40,7 +40,7 @@ const AppNavbar = () => {
                             <>
                                 <Nav><Nav.Link style={{ color: 'gray' }} onClick={() => navigate('/patients')}>Пациенты</Nav.Link>
                                     <Nav.Link style={{ color: 'gray' }} onClick={() => navigate('/consultations')}>Консультации</Nav.Link>
-                                    <Nav.Link style={{ color: 'gray' }}>Отчеты и статистика</Nav.Link>
+                                    <Nav.Link style={{ color: 'gray' }} onClick={() => navigate('/reports')}>Отчеты и статистика</Nav.Link>
                                 </Nav>
 
                             </>) : (
