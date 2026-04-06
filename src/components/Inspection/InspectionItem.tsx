@@ -13,7 +13,7 @@ const formatDateForInput = (isoDate?: string) => {
     return isoDate.split('T')[0];
 };
 
-const InspectionItem = ({ inspection, id, navigate }: Props) => {
+const InspectionItem = ({ inspection, id = '', navigate }: Props) => {
 
     const [open, setOpen] = useState(false);
 

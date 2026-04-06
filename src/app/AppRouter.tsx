@@ -7,6 +7,7 @@ import Patients from "../pages/Patients/Patients";
 import Patient from "../pages/Patient/Patient";
 import CreateInpspection from "../pages/CreateInpsections/CreateInpspection";
 import InspectionDetails from "../pages/InspectionDetails/InspectionDetails";
+import Consultations from "../pages/Consultation/Consultations";
 
 const router = createBrowserRouter([
     {
@@ -39,6 +40,11 @@ const router = createBrowserRouter([
     {
         path: '/inspection/:id',
         element: <CheckAuth><InspectionDetails></InspectionDetails></CheckAuth>
+    }
+    ,
+    {
+        path: '/consultations',
+        element: <CheckAuth><Consultations></Consultations></CheckAuth>
     }
 
 ])
