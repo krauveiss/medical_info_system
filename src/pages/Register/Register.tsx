@@ -8,7 +8,7 @@ import axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse'
 import type { Speciality } from '../../shared/api/Models/Speciality'
-
+import { formatPhone } from '../../shared/serviceFn'
 
 const Register = () => {
     type RegisterFormData = z.infer<typeof registerSchema>;
@@ -17,6 +17,8 @@ const Register = () => {
         register,
         handleSubmit,
         reset,
+        watch,
+        setValue,
         formState: { errors }
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema)
@@ -102,8 +104,16 @@ const Register = () => {
                                     <Row>
                                         <Form.Group className='mb-3' controlId='phone'>
                                             <Form.Label>Телефон</Form.Label>
-                                            <Form.Control type='tel' required placeholder='+7 777 777 7777' {...register("phone")}
-                                                isInvalid={!!errors.phone} ></Form.Control>
+                                            <Form.Control
+                                                type="tel"
+                                                placeholder="+7 (___) ___-__-__"
+                                                value={watch("phone") || ""}
+                                                onChange={(e) => {
+                                                    const formatted = formatPhone(e.target.value);
+                                                    setValue("phone", formatted);
+                                                }}
+                                                isInvalid={!!errors.phone}
+                                            />
                                             <Form.Control.Feedback type="invalid">
                                                 {errors.phone?.message}
                                             </Form.Control.Feedback>

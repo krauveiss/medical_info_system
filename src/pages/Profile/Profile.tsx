@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import axiosInstance from '../../shared/api/axiosConfig'
 import { useEffect } from 'react'
+import { formatPhone } from '../../shared/serviceFn'
 
 
 
@@ -28,11 +29,16 @@ const Profile = () => {
     type changeFormData = z.infer<typeof changeprofileSchema>
 
     function updateDoctorInfo(data: changeFormData) {
-        return axiosInstance.put('/doctor/profile', data);
+        const clean = data.phone.replace(/\D/g, "");
+        const newData = {
+            ...data,
+            phone: clean
+        }
+        return axiosInstance.put('/doctor/profile', newData);
     }
 
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<changeFormData>({ resolver: zodResolver(changeprofileSchema) });
+    const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<changeFormData>({ resolver: zodResolver(changeprofileSchema) });
 
     const { data, isPending, } = useQuery({
         queryKey: ['doctor-info'],
@@ -57,7 +63,7 @@ const Profile = () => {
             reset({
                 name: data.name,
                 email: data.email,
-                phone: data.phone,
+                phone: formatPhone(data.phone),
                 gender: data.gender.toLowerCase(),
                 birthday: formatDateForInput(data.birthday),
             });
@@ -122,11 +128,20 @@ const Profile = () => {
                                         <Row>
                                             <Form.Group className='mb-3' controlId='phone'>
                                                 <Form.Label>Телефон</Form.Label>
-                                                <Form.Control type='tel' required placeholder='+7 777 777 7777' style={{
-                                                    filter: isPending ? 'blur(4px)' : 'none',
-                                                    transition: 'filter 0.1s ease'
-                                                }} {...register("phone")}
-                                                    isInvalid={!!errors.phone}></Form.Control>
+                                                <Form.Control
+                                                    type="tel"
+                                                    placeholder="+7 (___) ___-__-__"
+                                                    value={watch("phone") || ""}
+                                                    onChange={(e) => {
+                                                        const formatted = formatPhone(e.target.value);
+                                                        setValue("phone", formatted);
+                                                    }}
+                                                    isInvalid={!!errors.phone}
+                                                    style={{
+                                                        filter: isPending ? 'blur(4px)' : 'none',
+                                                        transition: 'filter 0.1s ease'
+                                                    }}
+                                                />
                                                 <Form.Control.Feedback type="invalid">
                                                     {errors.phone?.message}
                                                 </Form.Control.Feedback>

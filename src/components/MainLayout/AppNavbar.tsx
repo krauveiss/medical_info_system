@@ -46,11 +46,13 @@ const AppNavbar = () => {
                             </>) : (
                             <><NavbarText>Пожалуйста, пройдите авторизацию.</NavbarText></>
                         )}
-                        <Nav className="ms-auto">
+                        <Nav className="ms-auto" >
                             {auth ? (
                                 <>
 
-                                    <NavDropdown title={data.name}>
+                                    <NavDropdown
+                                        title={<span className="nav-dropdown-title">{data.name}</span>}
+                                    >
 
                                         <NavDropdown.Item onClick={() => navigate('/profile')}>Профиль</NavDropdown.Item>
                                         <NavDropdown.Item onClick={destroyCookie}>Выход</NavDropdown.Item>
