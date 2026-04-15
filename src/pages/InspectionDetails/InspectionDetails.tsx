@@ -175,7 +175,7 @@ const InspectionDetails = () => {
         onSuccess: () => {
             alert("Успешно обновлено!"); handleClose(); refetch()
         },
-        onError: (e) => console.log(e)
+        onError: (e) => alert("Произошла error так называемая")
 
     })
 
@@ -474,7 +474,6 @@ const InspectionDetails = () => {
                                         <Col lg={4}>
                                             <ConsultationItem consult={consult}></ConsultationItem>
 
-
                                         </Col>
 
                                     ))}
@@ -514,7 +513,7 @@ const InspectionDetails = () => {
                                                 <span>{diag.code} — <b>{diag.name}</b></span>
                                             </Card.Header>
                                             <Card.Body>
-                                                <Card.Text>Тип в осмотре: {diag.type}</Card.Text>
+                                                <Card.Text>Тип в осмотре: {diag.type == 'Main' ? "Основной" : (diag.type == 'Complication' ? 'Сопутствующий' : 'Осложнение')}</Card.Text>
                                                 <Card.Text>Расшифровка: {diag.description}</Card.Text>
                                             </Card.Body>
                                         </Card>

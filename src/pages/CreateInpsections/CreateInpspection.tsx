@@ -161,7 +161,7 @@ const CreateInpspection = () => {
         mutationFn: createInspection,
         onSuccess: () => { navigate(`/patient/${patientId}`) },
         onError: (error: any) => {
-            alert(error.response?.data?.message);
+            alert('Что-то пошло не так...');
         }
     });
 
