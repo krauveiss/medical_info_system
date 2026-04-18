@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Alert, Button, Col, Container, Form, Row, Spinner } from 'react-bootstrap'
 import type z from 'zod'
 import { registerPatientSchema } from './registerPatientSchema'

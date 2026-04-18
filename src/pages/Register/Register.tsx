@@ -4,7 +4,7 @@ import type z from 'zod'
 import { registerSchema } from './register.schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse'
 import type { Speciality } from '../../shared/api/Models/Speciality'
@@ -40,7 +40,10 @@ const Register = () => {
     const mutation = useMutation({
         mutationFn: registerDoctor,
         onSuccess: () => { alert("Success register"); reset(); },
-        onError: (response) => { console.log("ERROR", response) },
+        onError: (e) => {
+            const error = e as AxiosError;
+            alert((error?.response?.data as { message: string })?.message)
+        }
 
     })
 

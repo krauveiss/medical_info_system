@@ -1,22 +1,20 @@
-import React, { act, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import MainLayout from '../../components/MainLayout/MainLayout'
 import { useParams } from 'react-router-dom'
 import axiosInstance from '../../shared/api/axiosConfig'
 import type { InspectionModel } from '../../shared/api/Models/InspectionModel'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Badge, Button, Card, CardBody, CardText, Col, Container, Dropdown, Form, Modal, Placeholder, Row, Spinner, Toast } from 'react-bootstrap'
-import type { InspectionCommentModel } from '../../shared/api/Models/InspectionCommentModel'
-import type { CommentModel } from '../../shared/api/Models/CommentModel'
-import type { ConsultationModel } from '../../shared/api/Models/ConsultationModel'
+import { Badge, Button, Card, CardText, Col, Container, Dropdown, Form, Modal, Placeholder, Row } from 'react-bootstrap'
+
 import { ConsultationItem } from '../../components/Inspection/ConsultationItem'
 import type { DoctorModel } from '../../shared/api/Models/DoctorModel'
-import { inspectionSchema } from '../CreateInpsections/inspectionSchema'
 import type z from 'zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { editInspectionSchema } from './editInspectionSchema'
 import type { DiagnosisType } from '../../shared/api/Models/DiagnosisType'
 import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel'
+import type { AxiosError } from 'axios'
 
 
 type DiagResponse = {
@@ -61,9 +59,6 @@ const formatDateForInput = (isoDate?: string) => {
 
 
 
-async function getDiagIcdId() {
-
-}
 const InspectionDetails = () => {
     type CreateInspectionData = z.infer<typeof editInspectionSchema>;
     const { register, handleSubmit, formState: { errors }, reset, control, watch } = useForm<CreateInspectionData>({
@@ -85,7 +80,7 @@ const InspectionDetails = () => {
 
 
                 const exactMatch = searchResult.data.records.find(
-                    (item: any) => item.name.toLowerCase() === diagnosis.name.toLowerCase()
+                    (item: any) => item.name.toLowerCase() === diagnosis.name?.toLowerCase()
                 );
 
                 return {
@@ -120,7 +115,6 @@ const InspectionDetails = () => {
     const [selectedDiag, setSelectedDiag] = useState<DiagnosisModel | null>(null);
     const [value, setValue] = useState('');
     const [allDiags, setAllDiags] = useState<DiagnosisModel[]>([]);
-    const [repeatInpsection, setRepeatInpsection] = useState(false);
     const [selectedDiagType, setSelectedDiagType] = useState<DiagnosisType>('Main');
 
 
@@ -175,7 +169,10 @@ const InspectionDetails = () => {
         onSuccess: () => {
             alert("Успешно обновлено!"); handleClose(); refetch()
         },
-        onError: (e) => alert("Произошла error так называемая")
+        onError: (e) => {
+            const error = e as AxiosError;
+            alert((error?.response?.data as { message: string })?.message)
+        }
 
     })
 
@@ -196,7 +193,7 @@ const InspectionDetails = () => {
             return;
         }
 
-        selectedDiag.description = diadDescriptionRef.current?.value;
+        selectedDiag.description = diadDescriptionRef.current?.value || '';
         selectedDiag.type = selectedDiagType;
         append({
             icdDiagnosisId: selectedDiag.id,
@@ -207,7 +204,9 @@ const InspectionDetails = () => {
         setAllDiags([...allDiags, selectedDiag]);
         setSelectedDiag(null);
         setValue('');
-        diadDescriptionRef.current.value = "";
+        if (diadDescriptionRef.current) {
+            diadDescriptionRef.current.value = "";
+        }
     }
 
     const conclType = watch('conclusion');
@@ -469,7 +468,7 @@ const InspectionDetails = () => {
                                     {data?.consultations?.length == 0 ? (
                                         <Card.Text><b>Не проводились</b></Card.Text>
                                     ) : <></>}
-                                    {data?.consultations?.length && data?.consultations?.length > 0 && data?.consultations?.map((consult, index) =>
+                                    {data?.consultations?.length && data?.consultations?.length > 0 && data?.consultations?.map((consult) =>
                                     (
                                         <Col lg={4}>
                                             <ConsultationItem consult={consult}></ConsultationItem>

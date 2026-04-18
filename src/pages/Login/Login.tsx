@@ -4,7 +4,7 @@ import type z from 'zod'
 import { loginschema } from './login.schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
@@ -39,7 +39,10 @@ const Login = () => {
             setCookie('token', response.data.token, 7);
             navigate('/profile')
         },
-        onError: (error) => { alert(error.response?.data.message) },
+        onError: (e) => {
+            const error = e as AxiosError;
+            alert((error?.response?.data as { message: string })?.message)
+        }
 
     })
 

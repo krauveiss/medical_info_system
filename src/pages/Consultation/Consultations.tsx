@@ -1,10 +1,9 @@
-import React, { Children, useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import MainLayout from '../../components/MainLayout/MainLayout';
 import axiosInstance from '../../shared/api/axiosConfig';
 import { useQuery } from '@tanstack/react-query';
-import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Dropdown, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
-import type { PatientCard } from '../../shared/api/Models/PatientCard';
+import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
 import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { Icd10SerachModel } from '../../shared/api/Models/Icd10SearchModel';
 import InspectionItem from '../../components/Inspection/InspectionItem';
@@ -79,15 +78,6 @@ const Consultations = () => {
     })
 
 
-    const handleInspectionClick = () => {
-        navigate('/inspection/create', {
-            state: {
-                id: '',
-                prev: null
-            }
-        })
-    }
-
     function handlePagClick(newPage: number) {
         setSearchParams(prev => {
             const params = Object.fromEntries(prev.entries());
@@ -150,7 +140,7 @@ const Consultations = () => {
         inspections.forEach(item => {
             map.set(item.id, { ...item, children: [] })
         })
-        const roots = []
+        const roots: any = []
 
         inspections.forEach(element => {
             if (element.previousId) {
@@ -230,9 +220,7 @@ const Consultations = () => {
                                                         ))}
                                                     </Dropdown.Menu>
                                                 </Dropdown>
-                                                <Button onClick={() => console.log(filters.icdRoots)}>
 
-                                                </Button>
                                             </Form.Group>
                                         </Col>
                                         <Col md={6} className="d-flex align-items-end">
@@ -279,12 +267,13 @@ const Consultations = () => {
                             </Card>
                             <Container>
                                 <Row>
-                                    {filters.grouped && datas.map((inspection) => (
+                                    {filters.grouped && datas.map((inspection: any) => (
                                         <Col xs={12} lg={6} key={inspection.id}>
                                             <InspectionItem
                                                 inspection={inspection}
                                                 id={''}
                                                 navigate={navigate}
+                                                hideCreateButton={true}
                                             />
                                         </Col>
                                     ))}
@@ -309,21 +298,14 @@ const Consultations = () => {
                                                     </ListGroup>
                                                     {inspection?.conclusion == 'Death' ? (
                                                         <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
-                                                            <Button variant='light' disabled={true}>Добавить осмотр невозможно</Button>
+
                                                             <Button variant='light' onClick={() => {
                                                                 navigate(`/inspection/${inspection.id}`)
                                                             }}>Детали осмотра</Button>
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
-                                                            <Button variant='outline-primary' disabled={inspection?.hasNested == true} onClick={() => {
-                                                                navigate('/inspection/create', {
-                                                                    state: {
-                                                                        id: id,
-                                                                        prev: inspection.id
-                                                                    }
-                                                                })
-                                                            }}>Добавить осмотр</Button>
+
                                                             <Button variant='outline-primary' onClick={() => {
                                                                 navigate(`/inspection/${inspection.id}`)
                                                             }}>Детали осмотра</Button>

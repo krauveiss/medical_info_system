@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Badge, Button, Card, Col, ListGroup } from 'react-bootstrap';
+import { Badge, Button, Card, ListGroup } from 'react-bootstrap';
 import type { NavigateFunction } from 'react-router-dom';
 
 interface Props {
-    inspection,
+    inspection: any,
     id: string | undefined,
     navigate: NavigateFunction,
+    hideCreateButton: boolean
 }
 
 const formatDateForInput = (isoDate?: string) => {
@@ -13,7 +14,7 @@ const formatDateForInput = (isoDate?: string) => {
     return isoDate.split('T')[0];
 };
 
-const InspectionItem = ({ inspection, id = '', navigate }: Props) => {
+const InspectionItem = ({ inspection, id = '', navigate, hideCreateButton }: Props) => {
 
     const [open, setOpen] = useState(false);
 
@@ -43,14 +44,17 @@ const InspectionItem = ({ inspection, id = '', navigate }: Props) => {
                     </div>
                 ) : (
                     <div style={{ width: '100%' }} className='d-flex justify-content-center gap-2 mt-3'>
-                        <Button variant='outline-primary' disabled={inspection?.hasNested == true} onClick={() => {
-                            navigate('/inspection/create', {
-                                state: {
-                                    id: id,
-                                    prev: inspection.id
-                                }
-                            })
-                        }}>Добавить осмотр</Button>
+                        {hideCreateButton ? (<></>) : (
+                            <Button variant='outline-primary' disabled={inspection?.hasNested == true} onClick={() => {
+                                navigate('/inspection/create', {
+                                    state: {
+                                        id: id,
+                                        prev: inspection.id
+                                    }
+                                })
+                            }}>Добавить осмотр</Button>
+                        )}
+
                         <Button variant='outline-primary' onClick={() => {
                             navigate(`/inspection/${inspection.id}`)
                         }}>Детали осмотра</Button>
@@ -66,7 +70,7 @@ const InspectionItem = ({ inspection, id = '', navigate }: Props) => {
             </Card.Body>
             {open && inspection.children && (
 
-                <InspectionItem inspection={inspection.children} id={id} navigate={navigate} />
+                <InspectionItem inspection={inspection.children} id={id} navigate={navigate} hideCreateButton={hideCreateButton} />
 
             )}
         </Card>

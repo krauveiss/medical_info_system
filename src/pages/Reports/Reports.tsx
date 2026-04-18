@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Container, Row, Col, Card, Form, Button, Table, Alert, Dropdown } from 'react-bootstrap'
 import { useQuery } from '@tanstack/react-query'
 import axiosInstance from '../../shared/api/axiosConfig'
@@ -31,7 +31,7 @@ type ReportResponse = {
 }
 
 const Reports = () => {
-    
+
 
     const { data: icdRoots } = useQuery({
         queryKey: ['icdRootsList'],
@@ -44,7 +44,6 @@ const Reports = () => {
         icdRoots: [] as string[]
     })
 
-    const [enabled, setEnabled] = useState(false)
 
     async function getReport(): Promise<ReportResponse> {
         const params = new URLSearchParams()
@@ -60,14 +59,13 @@ const Reports = () => {
         return data
     }
 
-    const { data, refetch, isError, isFetching } = useQuery({
+    const { data, refetch, isError } = useQuery({
         queryKey: ['report', filters],
         queryFn: getReport,
         enabled: false
     })
 
     const handleSubmit = () => {
-        setEnabled(true)
         refetch()
     }
 

@@ -1,4 +1,4 @@
-import React, { Children, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import MainLayout from '../../components/MainLayout/MainLayout';
 import axiosInstance from '../../shared/api/axiosConfig';
@@ -161,7 +161,7 @@ const Patient = () => {
         inspections.forEach(item => {
             map.set(item.id, { ...item, children: [] })
         })
-        const roots = []
+        const roots: any = []
 
         inspections.forEach(element => {
             if (element.previousId) {
@@ -281,9 +281,7 @@ const Patient = () => {
                                                         ))}
                                                     </Dropdown.Menu>
                                                 </Dropdown>
-                                                <Button onClick={() => console.log(filters.icdRoots)}>
 
-                                                </Button>
                                             </Form.Group>
                                         </Col>
                                         <Col md={6} className="d-flex align-items-end">
@@ -330,12 +328,13 @@ const Patient = () => {
                             </Card>
                             <Container>
                                 <Row>
-                                    {filters.grouped && datas.map((inspection) => (
+                                    {filters.grouped && datas.map((inspection: any) => (
                                         <Col xs={12} lg={6} key={inspection.id}>
                                             <InspectionItem
                                                 inspection={inspection}
                                                 id={id}
                                                 navigate={navigate}
+                                                hideCreateButton={false}
                                             />
                                         </Col>
                                     ))}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Badge, Button, Card, Spinner } from 'react-bootstrap'
 import type { ConsultationModel } from '../../shared/api/Models/ConsultationModel'
 import type { InspectionConsultationModel } from '../../shared/api/Models/InspectionConsultationModel'
@@ -8,12 +8,6 @@ import type { CommentModel } from '../../shared/api/Models/CommentModel'
 import type { CommentTreeItem } from '../../shared/api/Models/CommentTreeItem'
 import Comment from './Comment'
 
-const formatDateForInputInsp = (isoDate?: string) => {
-    if (!isoDate) return '';
-    let k = isoDate.split('T');
-    let b = k[1].split(':');
-    return `${k[0]} — ${b[0]}:${b[1]}`
-};
 
 const formatDateForInput = (isoDate?: string) => {
     if (!isoDate) return '';

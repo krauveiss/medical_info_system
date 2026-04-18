@@ -1,4 +1,4 @@
-import { Card, Col, Container, Form, Row, Button, Spinner, Placeholder } from 'react-bootstrap'
+import { Card, Col, Container, Form, Row, Button, Spinner } from 'react-bootstrap'
 import MainLayout from '../../components/MainLayout/MainLayout'
 import type z from 'zod'
 import { changeprofileSchema } from './changeprofile.schema'

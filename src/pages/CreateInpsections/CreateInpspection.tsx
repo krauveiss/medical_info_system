@@ -6,15 +6,15 @@ import MainLayout from '../../components/MainLayout/MainLayout';
 import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
 import type { Speciality } from '../../shared/api/Models/Speciality';
-import axios, { all } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import type { InpsectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel';
 import type z from 'zod';
 import { inspectionSchema } from './inspectionSchema';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { DiagnosisType } from '../../shared/api/Models/DiagnosisType';
+import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 
 
 async function getPatientInfo(id: string): Promise<PatientCard> {
@@ -41,7 +41,7 @@ async function getSpecialties(): Promise<SpecialityResponse> {
 }
 
 type InpsectionPreviewResponse = {
-    inspections: InpsectionPreviewModel[]
+    inspections: InspectionPreviewModel[]
 }
 
 type DiagResponse = {
@@ -97,7 +97,7 @@ const CreateInpspection = () => {
         name: 'consultations'
     });
 
-    const { fields: diags, append: appendDiags } = useFieldArray({
+    const { append: appendDiags } = useFieldArray({
         control,
         name: 'diagnoses'
     });
@@ -117,17 +117,19 @@ const CreateInpspection = () => {
         selectedDiag.type = selectedDiagType;
         appendDiags({
             icdDiagnosisId: selectedDiag.id,
-            description: selectedDiag.description,
+            description: selectedDiag.description || '',
             type: selectedDiag.type
         });
         setAllDiags([...allDiags, selectedDiag]);
         setSelectedDiag(null);
         setValue('');
-        diadDescriptionRef.current.value = "";
+        if (diadDescriptionRef.current) {
+            diadDescriptionRef.current.value = "";
+        }
     }
 
 
-    const needConsult = watch('consultations')?.length > 0;
+    const needConsult = (watch('consultations') || []).length > 0;
     const conclType = watch('conclusion');
 
     const
@@ -160,8 +162,23 @@ const CreateInpspection = () => {
     const mutation = useMutation({
         mutationFn: createInspection,
         onSuccess: () => { navigate(`/patient/${patientId}`) },
-        onError: (error: any) => {
-            alert('Что-то пошло не так...');
+        onError: (e) => {
+            const error = e as AxiosError<any>;
+
+            const data = error.response?.data;
+
+            if (data?.errors) {
+                const messages = Object.values(data.errors).flat();
+                alert(messages.join('\n'));
+            } else if (data?.title) {
+                alert(data.title);
+            }
+            else if (data?.message) {
+                alert(data?.message)
+            }
+            else {
+                alert('Unknown error');
+            }
         }
     });
 
@@ -249,7 +266,7 @@ const CreateInpspection = () => {
                                                                         <option value=''>
                                                                             {isLoading ? 'Загрузка...' : 'Выберите осмотр'}
                                                                         </option>
-                                                                        {dataInpsections?.inspections.map((insp: InpsectionPreviewModel) => (
+                                                                        {dataInpsections?.inspections.map((insp: InspectionPreviewModel) => (
                                                                             <option value={insp.id}>{formatDateForInputInsp(insp.date)} — {insp.diagnosis.code} ({insp.diagnosis.name})</option>
                                                                         ))}
                                                                     </Form.Select>

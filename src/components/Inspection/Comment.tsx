@@ -1,9 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { CommentTreeItem } from '../../shared/api/Models/CommentTreeItem'
 import { Button, Card, Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import axiosInstance from '../../shared/api/axiosConfig';
 import type { DoctorModel } from '../../shared/api/Models/DoctorModel';
 import { useState } from 'react';
+import type { AxiosError } from 'axios';
 
 async function getDoctorInfo(): Promise<DoctorModel> {
     const { data } = await axiosInstance.get('/doctor/profile');
@@ -38,11 +39,6 @@ const formatDateForInputInsp = (isoDate?: string) => {
     let k = isoDate.split('T');
     let b = k[1].split(':');
     return `${k[0]} — ${b[0]}:${b[1]}`
-};
-
-const formatDateForInput = (isoDate?: string) => {
-    if (!isoDate) return '';
-    return isoDate.split('T')[0];
 };
 
 
@@ -82,7 +78,10 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
         mutationFn: ({ consultId, parentId, content }: AddCommentParams) =>
             addConsultComment(consultId, parentId, content),
         onSuccess: () => refetchFn(),
-        onError: (e) => alert(e.response.data.message)
+        onError: (e) => {
+            const error = e as AxiosError;
+            alert((error?.response?.data as { message: string })?.message)
+        }
     })
 
     const mutationEdit = useMutation({
@@ -100,6 +99,8 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
     const [replyText, setReplyText] = useState('')
     const [editText, setEditText] = useState('')
 
+    console.log(comment);
+
     return (
         <div style={{ paddingLeft: mg + 10 }}>
             <Card >
@@ -111,7 +112,7 @@ const Comment = ({ comment, consultId, mg, refetchFn }: Props) => {
                     <div className='d-flex flex-column justify-content-center align-items-center'>
                         <div>
 
-                            {formatDateForInputInsp(comment.createTime) == formatDateForInputInsp(comment.modifiedDate) ? (
+                            {comment.createTime == comment.modifiedDate ? (
 
                                 <div>{formatDateForInputInsp(comment.createTime)}</div>
                             ) : (

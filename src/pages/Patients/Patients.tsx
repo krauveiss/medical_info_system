@@ -249,7 +249,7 @@ const Patients = () => {
                                                     verticalAlign: "middle"
                                                 }} bg='secondary'>{patient.name}</Badge>) : (<Badge style={{ color: "black" }} bg="danger">Не указано</Badge>)}</b></Card.Header>
                                                 <ListGroup>
-                                                    <ListGroup.Item>Пол — <b>{patient?.gender ? (<Badge bg='secondary'>{patient.gender}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
+                                                    <ListGroup.Item>Пол — <b>{patient?.gender ? (<Badge bg='secondary'>{patient.gender == 'Male' ? 'Мужской' : "Женский"}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
                                                     <ListGroup.Item>Дата рождения — <b>{patient?.birthday ? (<Badge bg='secondary'>{formatDateForInput(patient?.birthday)}</Badge>) : (<Badge style={{ color: 'black' }} bg="warning">Не указано</Badge>)}</b></ListGroup.Item>
                                                 </ListGroup>
                                             </Card>
