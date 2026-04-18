@@ -1,3 +1,8 @@
-*{
-    font-family: sans-serif;
+:root {
+    --bg: whitesmoke;
+    --font-base: sans-serif;
+}
+
+* {
+    font-family: var(--font-base);
 }
