@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
-import MainLayout from '../../components/MainLayout/MainLayout'
-import { useParams } from 'react-router-dom'
-import axiosInstance from '../../shared/api/axiosConfig'
-import type { InspectionModel } from '../../shared/api/Models/InspectionModel'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
+import { useEffect, useRef, useState } from 'react'
 import { Badge, Button, Card, CardText, Col, Container, Dropdown, Form, Modal, Placeholder, Row } from 'react-bootstrap'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
+import type z from 'zod'
 
 import { ConsultationItem } from '../../components/Inspection/ConsultationItem'
-import type { DoctorModel } from '../../shared/api/Models/DoctorModel'
-import type z from 'zod'
-import { useFieldArray, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { editInspectionSchema } from './editInspectionSchema'
-import type { DiagnosisType } from '../../shared/api/Models/DiagnosisType'
+import MainLayout from '../../components/MainLayout/MainLayout'
+import axiosInstance from '../../shared/api/axiosConfig'
 import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel'
-import type { AxiosError } from 'axios'
+import type { DiagnosisType } from '../../shared/api/Models/DiagnosisType'
+import type { DoctorModel } from '../../shared/api/Models/DoctorModel'
+import type { InspectionModel } from '../../shared/api/Models/InspectionModel'
+import { editInspectionSchema } from './editInspectionSchema'
 
 
 type DiagResponse = {
@@ -47,8 +47,8 @@ async function getInspections(userId: string): Promise<InspectionModel> {
 
 const formatDateForInputInsp = (isoDate?: string) => {
     if (!isoDate) return '';
-    let k = isoDate.split('T');
-    let b = k[1].split(':');
+    const k = isoDate.split('T');
+    const b = k[1].split(':');
     return `${k[0]} — ${b[0]}:${b[1]}`
 };
 

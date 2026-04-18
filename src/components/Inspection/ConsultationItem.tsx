@@ -1,11 +1,12 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Badge, Button, Card, Spinner } from 'react-bootstrap'
-import type { ConsultationModel } from '../../shared/api/Models/ConsultationModel'
-import type { InspectionConsultationModel } from '../../shared/api/Models/InspectionConsultationModel'
+
 import axiosInstance from '../../shared/api/axiosConfig'
-import { useQuery } from '@tanstack/react-query'
 import type { CommentModel } from '../../shared/api/Models/CommentModel'
 import type { CommentTreeItem } from '../../shared/api/Models/CommentTreeItem'
+import type { ConsultationModel } from '../../shared/api/Models/ConsultationModel'
+import type { InspectionConsultationModel } from '../../shared/api/Models/InspectionConsultationModel'
 import Comment from './Comment'
 
 

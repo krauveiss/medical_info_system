@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { CommentTreeItem } from '../../shared/api/Models/CommentTreeItem'
-import { Button, Card, Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import axiosInstance from '../../shared/api/axiosConfig';
-import type { DoctorModel } from '../../shared/api/Models/DoctorModel';
-import { useState } from 'react';
 import type { AxiosError } from 'axios';
+import { useState } from 'react';
+import { Button, Card, Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
+
+import axiosInstance from '../../shared/api/axiosConfig';
+import type { CommentTreeItem } from '../../shared/api/Models/CommentTreeItem'
+import type { DoctorModel } from '../../shared/api/Models/DoctorModel';
 
 async function getDoctorInfo(): Promise<DoctorModel> {
     const { data } = await axiosInstance.get('/doctor/profile');
@@ -36,8 +37,8 @@ async function editComment(commentId: string, content: string) {
 
 const formatDateForInputInsp = (isoDate?: string) => {
     if (!isoDate) return '';
-    let k = isoDate.split('T');
-    let b = k[1].split(':');
+    const k = isoDate.split('T');
+    const b = k[1].split(':');
     return `${k[0]} — ${b[0]}:${b[1]}`
 };
 

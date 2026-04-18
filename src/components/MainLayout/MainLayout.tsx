@@ -1,6 +1,8 @@
-import React from 'react'
-import AppNavbar from './AppNavbar'
 import './style.css'
+
+import React from 'react'
+
+import AppNavbar from './AppNavbar'
 
 interface Props {
   children: React.ReactNode

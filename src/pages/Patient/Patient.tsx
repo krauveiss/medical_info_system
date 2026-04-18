@@ -1,13 +1,14 @@
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react'
+import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Dropdown, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+
+import InspectionItem from '../../components/Inspection/InspectionItem';
 import MainLayout from '../../components/MainLayout/MainLayout';
 import axiosInstance from '../../shared/api/axiosConfig';
-import { useQuery } from '@tanstack/react-query';
-import { Accordion, Alert, Badge, Button, Card, CardHeader, Col, Container, Dropdown, Form, ListGroup, Pagination, Row } from 'react-bootstrap';
-import type { PatientCard } from '../../shared/api/Models/PatientCard';
-import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
 import type { Icd10SerachModel } from '../../shared/api/Models/Icd10SearchModel';
-import InspectionItem from '../../components/Inspection/InspectionItem';
+import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
+import type { PatientCard } from '../../shared/api/Models/PatientCard';
 
 
 

@@ -1,11 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
-import MainLayout from '../../components/MainLayout/MainLayout'
-import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Modal, Pagination, Row, Spinner } from 'react-bootstrap'
-import axiosInstance from '../../shared/api/axiosConfig';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
-import RegisterPatientForm from '../../components/Patient/RegisterPatientForm';
 import './patients.css'
+
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react';
+import { Badge, Button, Card, CardHeader, Col, Container, Form, ListGroup, Modal, Pagination, Row, Spinner } from 'react-bootstrap'
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import MainLayout from '../../components/MainLayout/MainLayout'
+import RegisterPatientForm from '../../components/Patient/RegisterPatientForm';
+import axiosInstance from '../../shared/api/axiosConfig';
 
 const formatDateForInput = (isoDate?: string) => {
     if (!isoDate) return '';

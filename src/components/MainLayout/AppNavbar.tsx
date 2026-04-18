@@ -1,7 +1,8 @@
-import { Container, Navbar, Nav, NavDropdown, NavbarText } from 'react-bootstrap'
-import { Link, useNavigate } from 'react-router-dom';
-import axiosInstance from '../../shared/api/axiosConfig';
 import { useQuery } from '@tanstack/react-query';
+import { Container, Nav, Navbar, NavbarText,NavDropdown } from 'react-bootstrap'
+import { Link, useNavigate } from 'react-router-dom';
+
+import axiosInstance from '../../shared/api/axiosConfig';
 
 async function getDoctorInfo() {
     const { data } = await axiosInstance.get('/doctor/profile');

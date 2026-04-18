@@ -1,20 +1,21 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import axiosInstance from '../../shared/api/axiosConfig';
-import type { PatientCard } from '../../shared/api/Models/PatientCard';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import MainLayout from '../../components/MainLayout/MainLayout';
-import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
-import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
-import type { Speciality } from '../../shared/api/Models/Speciality';
 import axios, { AxiosError } from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel';
-import type z from 'zod';
-import { inspectionSchema } from './inspectionSchema';
+import { Alert, Badge, Button, Card, Col, Container, Dropdown, Form, ListGroup, Row, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocation, useNavigate } from 'react-router-dom'
+import type z from 'zod';
+
+import MainLayout from '../../components/MainLayout/MainLayout';
+import axiosInstance from '../../shared/api/axiosConfig';
+import type { DiagnosisModel } from '../../shared/api/Models/DiagnosisModel';
 import type { DiagnosisType } from '../../shared/api/Models/DiagnosisType';
 import type { InspectionPreviewModel } from '../../shared/api/Models/InspectionPreviewMode';
+import type { PatientCard } from '../../shared/api/Models/PatientCard';
+import type { Speciality } from '../../shared/api/Models/Speciality';
+import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse';
+import { inspectionSchema } from './inspectionSchema';
 
 
 async function getPatientInfo(id: string): Promise<PatientCard> {
@@ -28,8 +29,8 @@ const formatDateForInput = (isoDate?: string) => {
 
 const formatDateForInputInsp = (isoDate?: string) => {
     if (!isoDate) return '';
-    let k = isoDate.split('T');
-    let b = k[1].split(':');
+    const k = isoDate.split('T');
+    const b = k[1].split(':');
     return `${k[0]} ${b[0]}:${b[1]}`
 };
 

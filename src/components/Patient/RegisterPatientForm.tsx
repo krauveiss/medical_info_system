@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { Alert, Button, Col, Container, Form, Row, Spinner } from 'react-bootstrap'
-import type z from 'zod'
-import { registerPatientSchema } from './registerPatientSchema'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Alert, Button, Col, Container, Form, Row, Spinner } from 'react-bootstrap'
+import { useForm } from 'react-hook-form'
+import type z from 'zod'
+
 import axiosInstance from '../../shared/api/axiosConfig'
+import { registerPatientSchema } from './registerPatientSchema'
 
 const RegisterPatientForm = () => {
 

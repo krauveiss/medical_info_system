@@ -1,14 +1,15 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Register from "../pages/Register/Register";
-import Login from "../pages/Login/Login";
-import Profile from "../pages/Profile/Profile";
-import CheckAuth from "../shared/api/CheckAuth";
-import Patients from "../pages/Patients/Patients";
-import Patient from "../pages/Patient/Patient";
+
+import Consultations from "../pages/Consultation/Consultations";
 import CreateInpspection from "../pages/CreateInpsections/CreateInpspection";
 import InspectionDetails from "../pages/InspectionDetails/InspectionDetails";
-import Consultations from "../pages/Consultation/Consultations";
+import Login from "../pages/Login/Login";
+import Patient from "../pages/Patient/Patient";
+import Patients from "../pages/Patients/Patients";
+import Profile from "../pages/Profile/Profile";
+import Register from "../pages/Register/Register";
 import Reports from "../pages/Reports/Reports";
+import CheckAuth from "../shared/api/CheckAuth";
 
 const router = createBrowserRouter([
     {

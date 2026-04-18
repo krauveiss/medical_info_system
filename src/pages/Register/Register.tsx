@@ -1,14 +1,15 @@
-import MainLayout from '../../components/MainLayout/MainLayout'
-import { Card, Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap'
-import type z from 'zod'
-import { registerSchema } from './register.schema'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios, { AxiosError } from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse'
+import axios, { AxiosError } from 'axios'
+import { Button, Card, Col, Container, Form, Row, Spinner } from 'react-bootstrap'
+import { useForm } from 'react-hook-form'
+import type z from 'zod'
+
+import MainLayout from '../../components/MainLayout/MainLayout'
 import type { Speciality } from '../../shared/api/Models/Speciality'
+import type { SpecialityResponse } from '../../shared/api/Models/SpecialityResponse'
 import { formatPhone } from '../../shared/serviceFn'
+import { registerSchema } from './register.schema'
 
 const Register = () => {
     type RegisterFormData = z.infer<typeof registerSchema>;
